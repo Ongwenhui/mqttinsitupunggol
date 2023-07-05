@@ -16,12 +16,15 @@ import sys
 import threading
 import math
 import csv
+import pandas as pd
 import random
 import sys
 import tty
 import termios
 import dtchecker
-import pandas as pd
+import random
+from awscrt import io, mqtt, auth, http
+from awsiot import mqtt_connection_builder
 
 varymaskers = False
 MEOW = False
@@ -81,15 +84,6 @@ def readcsv(csvfile):
 
 calibgains = readcsv('/mqttpunggol/Calibrations_final_speaker.csv')
 
-# mqttENDPOINT = "a5i03kombapo4-ats.iot.ap-southeast-1.amazonaws.com"
-# mqttCLIENT_ID = "AIMEGET"
-# mqttcertfolder = "/home/pi/mqtt_client/certs/"
-# mqttPATH_TO_CERTIFICATE = mqttcertfolder + "c86008d5f6f3eb115159777ba9da6c0b97bfdf2309c15020c8d1d2747e4f6bdc-certificate.pem.crt"
-# mqttPATH_TO_PRIVATE_KEY = mqttcertfolder + "c86008d5f6f3eb115159777ba9da6c0b97bfdf2309c15020c8d1d2747e4f6bdc-private.pem.key"
-# mqttPATH_TO_AMAZON_ROOT_CA_1 = mqttcertfolder + "AmazonRootCA1.pem"
-# mqttTOPIC = "amss/prediction"
-# mqttRANGE = 20
-
 #LOCATION_ID = 'ntu-gazebo01'
 LOCATION_ID = 'PWP'
 optimaldistance = 1 #Punggol MSCP
@@ -98,7 +92,7 @@ class soundplayer:
     def __init__(self):
         self.mqttENDPOINT="a5i03kombapo4-ats.iot.ap-southeast-1.amazonaws.com"
         self.mqttCLIENT_ID= "AIMEGET"
-        self.mqttcertfolder='/mqttpunggol/certs/'
+        self.mqttcertfolder= "/mqttpunggol/certs/"
         self.mqttPATH_TO_CERTIFICATE = self.mqttcertfolder + "c86008d5f6f3eb115159777ba9da6c0b97bfdf2309c15020c8d1d2747e4f6bdc-certificate.pem.crt"
         self.mqttPATH_TO_AMAZON_ROOT_CA_1 = self.mqttcertfolder + "AmazonRootCA1.pem"
         self.mqttPATH_TO_PRIVATE_KEY=self.mqttcertfolder + "c86008d5f6f3eb115159777ba9da6c0b97bfdf2309c15020c8d1d2747e4f6bdc-private.pem.key"
@@ -212,6 +206,15 @@ class soundplayer:
         # sd.play(data, fs, device=1)
     def ambient(self):
         time.sleep(30)
+    def playsilence(self):
+        print('playing silence')
+        silence, silencefs = sf.read(self.maskerpath + "silence3s.wav", dtype='float32')
+        sd.play(silence, silencefs, device=1)
+        sd.wait()
+    def playtesttone(self):
+        testtone, testtonefs = sf.read('/mqttpunggol/4channel.wav')
+        sd.play(testtone, testtonefs, device=1)
+        sd.wait()
     def playfixedmasker(self, name, gain):
         fixedmaskers, fs = sf.read(self.maskerpath + name + '.wav')
         f = open(calibjsonpath, "r")
@@ -227,6 +230,38 @@ class soundplayer:
         print('Compensated gain: {} dB'.format(20*math.log10(compGain)))
         print(self.maskerpath + name)
         print('now playing fixed masker {} with gain: {} as DOA {}'.format(name, realgain*compGain, self.currentdoa))
+
+        sd.play(fixedmaskers*realgain*compGain, fs, device=1)
+        sd.wait()
+        
+    def playrandommasker(self):
+        randomlist = ['bird', 'water', 'wind']
+        randomchoice = random.choice(randomlist)
+        if randomchoice == 'wind':
+            randomnumber = random.randrange(1, 41)
+            if randomnumber < 10:
+                randomnumber = '0' + str(randomnumber)
+        else:
+            randomnumber = random.randrange(1, 81)
+            if randomnumber < 10:
+                randomnumber = '0' + str(randomnumber)
+        print(f'random masker = {randomchoice}, randomnumber = {randomnumber}')
+        randomgain = random.randrange(46, 84)
+        randommasker = (f'{randomchoice}_000{randomnumber}')
+        fixedmaskers, fs = sf.read(self.maskerpath + randommasker + '.wav')
+        f = open(calibjsonpath, "r")
+        calib = json.load(f)
+        gainindex = randomgain - 46
+        for maskerkey in calib:
+            if randommasker == maskerkey:
+                realgain = calib[randommasker][gainindex]
+                print(realgain)
+
+        #compensated gain for distance and num of speakers
+        compGain = math.pow(10,self.insitucompensate(numofspeakers,optimaldistance)/20)
+        print('Compensated gain: {} dB'.format(20*math.log10(compGain)))
+        print(self.maskerpath + randommasker)
+        print('now playing random masker {} with gain: {} as DOA {}'.format(randommasker, realgain*compGain, self.currentdoa))
 
         sd.play(fixedmaskers*realgain*compGain, fs, device=1)
         sd.wait()
@@ -320,7 +355,7 @@ class soundplayer:
                         if (newmasker != self.currentmasker and newmasker != None) or (newweightedgain != None and abs(newweightedgain-self.weightedgain)>self.maskerdiff) or (newdoa!=None and abs(self.currentdoa - newdoa)>self.doadiff):
                             if MEOW:
                                 newmasker = "meow"
-                            if switch == 0:
+                            if (switch != 0) or (globalswitch != 1):
                                 print('exiting playmasker')
                                 return
                             fnew = sf.SoundFile(self.maskerpath + newmasker + '.wav')
@@ -381,23 +416,6 @@ class soundplayer:
             raise sd.CallbackStop
         else:
             outdata[:] = data
-    def streamcallbackeval(self, outdata, frames, time, status):
-        data = np.zeros((self.blocksize,1))
-        assert frames == self.blocksize
-        # if status.output_underflow:
-        #     print('Output underflow: increase blocksize?', file=sys.stderr)
-        #     raise sd.CallbackAbort
-        assert not status
-        # try:
-        data = self.q.get_nowait()
-        # except queue.Empty as e:
-        #     print('Buffer is empty: increase buffersize?', file=sys.stderr)
-        #     raise sd.CallbackAbort from e
-        if len(data) < len(outdata) and not self.q.empty():
-            outdata[:len(data)] = data
-            outdata[len(data):].fill(0)
-        else:
-            outdata[:] = data
        
     # save terminal settings
 
@@ -408,7 +426,7 @@ class soundplayer:
             if notprinted_flag:
                 print("Waiting for predictions")
                 notprinted_flag = False
-                
+
         while True:
             dateindex = 0
             switch, date = dtchecker.main()
@@ -418,28 +436,83 @@ class soundplayer:
                     masker = dummycsv['mode'][dateindex]
                     gain = dummycsv['spl'][dateindex]
                     print(f'masker = {masker}, gain = {gain}')
-                    if masker == 'amss':
-                        if switch == 1:
+                    print(f'switch = {switch}')
+                    print(f'globalswitch = {globalswitch}')
+                    if switch == 0:
+                        print('Quiet hours')
+                        self.ambient()
+                    if switch == 1:
+                        if globalswitch == 0:
+                            self.playsilence()
+                        if globalswitch == 1:
                             self.playmasker()
-                        elif switch == 0:
-                            self.ambient()
-                    else:
-                        if switch == 1:
-                            self.playfixedmasker(masker, gain)
-                        elif switch == 0:
-                            self.ambient()
+                        if globalswitch == 2:
+                            self.playtesttone()
+                        if globalswitch == 9:
+                            if masker == 'amss':
+                                self.playmasker()
+                            elif masker == 'random':
+                                self.playrandommasker()
+                            else:
+                                self.playfixedmasker(masker, gain)
+                    elif switch == 0:
+                        self.ambient()
                 dateindex += 1
                 time.sleep(1)
 
     def mqttlooper(self):
         while True:
             self.MQTTClient.subscribeAsync(self.mqttTOPIC, 0,messageCallback = self.msgcallback)
-            time.sleep(10)
+            time.sleep(1)
+            iotClient.subscribeAsync(TOPIC, 0,messageCallback = self.customcallback)
+            time.sleep(1)
+    def customcallback(self, client, userdata, message):
+        incomingmsgs=json.loads(message.payload.decode('utf-8'))
+        payloadstr = str(incomingmsgs)
+        splitpayload = payloadstr.split('onoff')
+        global globalswitch
+        splitsplitpayload = str(splitpayload[1]).split('location_id')
+        splitsplitpayload = str(splitsplitpayload[1]).replace("'",'').replace(' ','').replace(":", "").replace("}", "")
+        currentlocationid = splitsplitpayload
+        print(f'location_id from IoT Core = {currentlocationid}')
+        if currentlocationid == LOCATION_ID:
+            globalswitch = int(splitpayload[1][3])
+        else:
+            pass
 
 sp = soundplayer()
 
 sp.MQTTClient.connectAsync()
-print("connected")
+print("connected to mqtt")
+ENDPOINT = "a5i03kombapo4-ats.iot.ap-southeast-1.amazonaws.com"
+CLIENT_ID = "enviropluspi"
+PATH_TO_CERTIFICATE = "/mqttpunggol/certs/9972587da4767d10db7001fc18bab5b9124945c4762ebf246b6266e08352970b-certificate.pem.crt"
+PATH_TO_PRIVATE_KEY = "/mqttpunggol/certs/9972587da4767d10db7001fc18bab5b9124945c4762ebf246b6266e08352970b-private.pem.key"
+PATH_TO_AMAZON_ROOT_CA_1 = "/mqttpunggol/certs/root.pem"
+TOPIC = "test/nbs"
+iotClient = AWSIoTPyMQTT.AWSIoTMQTTClient('nbsiot')
+iotClient.configureEndpoint(ENDPOINT, 8883)
+iotClient.configureCredentials(PATH_TO_AMAZON_ROOT_CA_1, PATH_TO_PRIVATE_KEY, PATH_TO_CERTIFICATE)
+event_loop_group = io.EventLoopGroup(1)
+host_resolver = io.DefaultHostResolver(event_loop_group)
+client_bootstrap = io.ClientBootstrap(event_loop_group, host_resolver)
+mqtt_connection = mqtt_connection_builder.mtls_from_path(
+            endpoint=ENDPOINT,
+            cert_filepath=PATH_TO_CERTIFICATE,
+            pri_key_filepath=PATH_TO_PRIVATE_KEY,
+            client_bootstrap=client_bootstrap,
+            ca_filepath=PATH_TO_AMAZON_ROOT_CA_1,
+            client_id=CLIENT_ID,
+            clean_session=False,
+            keep_alive_secs=6
+            )
+print("Connecting to {} with client ID '{}'...".format(
+        ENDPOINT, CLIENT_ID))
+
+    
+iotClient.connectAsync()
+print("Connected to test/nbs")
+globalswitch = 0
 
 dummycsv = pd.read_csv("/mqttpunggol/dummy.csv")
 print(dummycsv)
