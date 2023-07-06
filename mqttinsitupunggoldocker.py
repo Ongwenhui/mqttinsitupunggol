@@ -85,7 +85,7 @@ def readcsv(csvfile):
 calibgains = readcsv('/mqttpunggol/Calibrations_final_speaker.csv')
 
 #LOCATION_ID = 'ntu-gazebo01'
-LOCATION_ID = 'PWP'
+LOCATION_ID = 'NTU_YNG_639798'
 optimaldistance = 1 #Punggol MSCP
 numofspeakers = 4
 class soundplayer:
@@ -440,7 +440,7 @@ class soundplayer:
                     print(f'globalswitch = {globalswitch}')
                     if switch == 0:
                         print('Quiet hours')
-                        self.ambient()
+                        self.playsilence()
                     if switch == 1:
                         if globalswitch == 0:
                             self.playsilence()
@@ -456,7 +456,7 @@ class soundplayer:
                             else:
                                 self.playfixedmasker(masker, gain)
                     elif switch == 0:
-                        self.ambient()
+                        self.playsilence()
                 dateindex += 1
                 time.sleep(1)
 
@@ -488,7 +488,7 @@ ENDPOINT = "a5i03kombapo4-ats.iot.ap-southeast-1.amazonaws.com"
 CLIENT_ID = "enviropluspi"
 PATH_TO_CERTIFICATE = "/mqttpunggol/certs/9972587da4767d10db7001fc18bab5b9124945c4762ebf246b6266e08352970b-certificate.pem.crt"
 PATH_TO_PRIVATE_KEY = "/mqttpunggol/certs/9972587da4767d10db7001fc18bab5b9124945c4762ebf246b6266e08352970b-private.pem.key"
-PATH_TO_AMAZON_ROOT_CA_1 = "/mqttpunggol/certs/root.pem"
+PATH_TO_AMAZON_ROOT_CA_1 = "/mqttpunggol/certs/AmazonRootCA1.pem"
 TOPIC = "test/nbs"
 iotClient = AWSIoTPyMQTT.AWSIoTMQTTClient('nbsiot')
 iotClient.configureEndpoint(ENDPOINT, 8883)
