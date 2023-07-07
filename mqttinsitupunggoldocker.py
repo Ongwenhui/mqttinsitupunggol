@@ -251,6 +251,7 @@ class soundplayer:
         fixedmaskers, fs = sf.read(self.maskerpath + randommasker + '.wav')
         f = open(calibjsonpath, "r")
         calib = json.load(f)
+        randomgain = 62 #fixed gain at 62 for now
         gainindex = randomgain - 46
         for maskerkey in calib:
             if randommasker == maskerkey:
