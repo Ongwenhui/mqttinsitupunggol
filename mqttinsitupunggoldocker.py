@@ -453,6 +453,8 @@ class soundplayer:
                                 self.playmasker()
                             elif masker == 'random':
                                 self.playrandommasker()
+                            elif masker == 'ambient:
+                                self.playfixedmasker('silence3s', 60)
                             else:
                                 self.playfixedmasker(masker, gain)
                     elif switch == 0:
