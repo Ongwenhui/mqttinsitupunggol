@@ -1,6 +1,7 @@
 # mqttinsitupunggol
 
 Rmb to change location_id
+Make sure device=7 for older versions of MCHStreamer (PCP setup) for all instances of sd.play()
 
 ## Calibrations_finals_speaker_moukey.csv
 csv file with updated gain values for the new Moukey speakers.
