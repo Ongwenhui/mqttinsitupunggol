@@ -153,7 +153,9 @@ class soundplayer:
                             10*math.log10(numofspeakers) -
                             20*math.log10(noOfMaskers))
         return compensated
-
+    def iotsend(inputdict):
+        mqtt_connection.connect()
+        mqtt_connection.publish(topic="test/AIMEdebugging", payload=(inputdict), qos=mqtt.QoS.AT_LEAST_ONCE)
     def spatialize(self, masker, angle, normalize=True, offset=-65, k=1.0):
         # masker.shape = (n_samples,)2
         # angle in degrees
@@ -276,9 +278,8 @@ class soundplayer:
 
         sd.play(fixedmaskers*realgain*compGain, fs, device=2)
         sd.wait()
-
     def playmasker(self):
-        self.q = queue.Queue(maxsize=self.buffersize)
+        self.q = queue.Queue()
         newmasker = None
         newweightedgain = None
         newdoa = None
@@ -288,23 +289,32 @@ class soundplayer:
         if not self.q2.empty():
             self.msgdict = self.msgq
             self.ambientspl = self.msgdict["base_spl"]
-        
+
         if self.msgdict != None: #If there is a prediction
-            #print("Here")
-            print("starting playback again")
-            # maskercounter: to get index of the masker from the dictionary, usually 0 for top masker
-            print("masker counter=" + str(self.maskercounter))
+            predictionlist =[]
+            uniquepredictionlist = []
+            for prediction in self.msgdict['predictions']:
+                for indexes in range(len(self.msgdict['predictions'])):
+                    predictionlist.append(self.msgdict['predictions'][indexes]['rank'])
+                    predictionlist.append(self.msgdict['predictions'][indexes]['id'])
+                for item in predictionlist:
+                    if type(item) == str:
+                        if item not in uniquepredictionlist:
+                            uniquepredictionlist.append(item)
+                            uniquepredictionlist.append(predictionlist.index(item)-1)
+            self.currentmasker1 = uniquepredictionlist[0]
+            self.maskerindex1 = uniquepredictionlist[1]
+            print('top rated masker = {}'.format(self.currentmasker1))
+            print('index of top masker = {}'.format(self.maskerindex1))
             # if the masker to be played is not self.currentmasker, set self.maskergain to the gain of the masker to be played
             # self.currentmasker is set to bird_00075 by default
-            if (self.msgdict['predictions'][self.maskercounter]["id"] != self.currentmasker) or (abs(self.msgdict['predictions'][self.maskercounter]["gain"]-self.maskergain)*self.gainweight>self.maskerdiff) or (abs(self.currentdoa - self.msgdict["doa"])>self.doadiff):
-                self.maskergain = self.msgdict['predictions'][self.maskercounter]["gain"]
+            if (self.msgdict['predictions'][self.maskerindex1]["id"] != self.currentmasker) or (abs(self.msgdict['predictions'][self.maskercounter]["gain"]-self.maskergain)*self.gainweight>self.maskerdiff) or (abs(self.currentdoa - self.msgdict["doa"])>self.doadiff):
+                self.maskergain1 = self.msgdict['predictions'][self.maskerindex1]["gain"]
                 # if self.maskergain (set in previous step) less than gainlimit (set at 1000)
-                if self.maskergain*self.gainweight < self.gainlimit:
-                    print("self.maskergain = {}".format(self.maskergain))
-                    # print("self.msgdict['predictions'][self.maskercounter]['id']+'.wav' = {}".format(self.msgdict['predictions'][self.maskercounter]["id"]+'.wav'))
-                    # print("round(self.ambientspl + 20*math.log10(self.maskergain)) = {}".format(round(self.ambientspl + 20*math.log10(self.maskergain))))
+                if self.maskergain1*self.gainweight < self.gainlimit:
+                    print("self.maskergain1 = {}".format(self.maskergain1))
                     # calculate amssgain
-                    amssgain = interpolate(self.msgdict['predictions'][self.maskercounter]["id"],self.maskergain) + self.insitucompensate(numofspeakers,optimaldistance)
+                    amssgain = interpolate(self.msgdict['predictions'][self.maskerindex1]["id"],self.maskergain1) + self.insitucompensate(numofspeakers,optimaldistance)
                     # set amssgaint to min 45 and max 83
                     if amssgain >45 and amssgain <= 83:
                         pass
@@ -312,102 +322,36 @@ class soundplayer:
                         amssgain = 83
                     elif amssgain <46:
                         amssgain = 46
-                    self.weightedgain = calibgains[self.msgdict['predictions'][self.maskercounter]["id"]+'.wav'][str(amssgain)]
-                    #print("I'm Here")
-                    print("AMSS Gain: {}".format(amssgain))
-                    print("self.weightedgain = {}".format(self.weightedgain))
+                    amssgain1 = amssgain
+                    self.weightedgain1 = calibgains[self.msgdict['predictions'][self.maskerindex1]["id"]+'.wav'][str(amssgain1)]
+                    print("self.weightedgain1 = {}".format(self.weightedgain1))
                 else:
-                    self.weightedgain = self.gainlimit
+                    self.weightedgain1 = self.gainlimit
                 self.currentdoa = self.msgdict["doa"]
-                #print("Here")
-                # self.currentmaskerorig = self.currentmasker
         else:
             pass
         try:
-            # open currentmasker with soundfile
-            with sf.SoundFile(self.maskerpath + (self.currentmasker if not MEOW else "meow") +'.wav') as f:
-                print("stream created using {} with gain: {} at DOA: {}".format(self.currentmasker,self.weightedgain,self.currentdoa))
-                stream = sd.OutputStream(
-                    samplerate=f.samplerate, blocksize=self.blocksize,
-                    device=2, channels=4,
-                    callback=self.streamcallback, finished_callback=self.event.set)
-                with stream:
-                    timeout = self.blocksize * self.buffersize / f.samplerate * 1000
-                    for _ in range(int(self.buffersize)):
-                        data = self.spatialize(f.read(self.blocksize, always_2d=True)*self.weightedgain, self.currentdoa)
-                        if not len(data):
-                            break
-                        self.q.put_nowait(data)  # Pre-fill queue
-                        # print("queue pre-filled")
-                    while len(data):
-                        if not self.q2.empty():
-                            self.msgdict = self.q2.get_nowait()
-                            
-                            if (self.msgdict['predictions'][0]["id"] != self.currentmaskerorig) or (abs(self.msgdict['predictions'][0]["gain"]-self.maskergainorig)*self.gainweight>self.maskerdiff) or (abs(self.currentdoa - self.msgdict["doa"])>self.doadiff):
-                                newgain = self.msgdict['predictions'][0]["gain"]
-                                newamssgain = interpolate(self.msgdict['predictions'][0]["id"],newgain) + self.insitucompensate(numofspeakers,optimaldistance)
-                                print("newamssgain = {}".format(newamssgain))
-                                if newamssgain >45 and newamssgain <= 83:
-                                    pass
-                                elif newamssgain >83:
-                                    newamssgain = 83
-                                elif newamssgain <46:
-                                    newamssgain = 46
-                                newweightedgain = calibgains[self.msgdict['predictions'][self.maskercounter]["id"]+'.wav'][str(newamssgain)]
-                                
-                                newmasker = self.msgdict['predictions'][0]["id"]
-                                self.maskercounter=0
-                                print("masker counter=" + str(self.maskercounter))
-                                newdoa = self.msgdict['doa']
-                            else:
-                                pass
-                        else:
-                            pass
-                        if (newmasker != self.currentmasker and newmasker != None) or (newweightedgain != None and abs(newweightedgain-self.weightedgain)>self.maskerdiff) or (newdoa!=None and abs(self.currentdoa - newdoa)>self.doadiff):
-                            if MEOW:
-                                newmasker = "meow"
-                            if (switch != 0) or (globalswitch != 1):
-                                print('exiting playmasker')
-                                return
-                            fnew = sf.SoundFile(self.maskerpath + newmasker + '.wav')
-                            print("Changing - Playing: {} with gain:{} at DOA: {}".format(newmasker,newweightedgain,newdoa))
-                            for i in range(self.fadelength):
-                                track1 = self.spatialize(f.read(self.blocksize, always_2d=True)*(1-(i/self.fadelength))*self.weightedgain, self.currentdoa)
-                                track2 = self.spatialize(fnew.read(self.blocksize, always_2d=True)*(i/self.fadelength)*newweightedgain, newdoa)
-                                if len(track1) < len(track2) and not self.q.empty():
-                                    track1cut = np.zeros((self.blocksize,4))
-                                    track1cut[:len(track1)] = track1
-                                    track1cut[len(track1):].fill(0)
-                                    print("track ending")
-                                else:
-                                    track1cut = track1
-                                data = track1cut + track2
-                                self.q.put(data, timeout=timeout)
-                            f = fnew
-                            self.currentmasker = newmasker
-                            self.currentmaskerorig = self.currentmasker
-                            self.weightedgain = newweightedgain
-                            self.maskergainorig=newgain
-                            self.currentdoa = newdoa
+            f1, fs1 = sf.read(self.maskerpath + self.currentmasker1 +'.wav')
+            print("stream created using {} with gain: {} at DOA: {}".format(self.currentmasker1,
+                                                                                   self.weightedgain1,
+                                                                                   self.currentdoa))
+            location = f'{LOCATION_ID}'
+            sendmasker = f'{self.currentmasker}'
+            predictionsdict = {"Prediction": sendmasker, "basescore": self.msgdict['base_score'], "doa": self.msgdict['doa'], "basespl": self.msgdict['base_spl'], "from": location}
+            print(predictionsdict)
+            predictionsdict = str(predictionsdict).replace("'", '"')
 
-                            # time.sleep(10)
-                        else:
-                            # print("reading data")
-                            #data = self.spatialize(f.read(self.blocksize, always_2d=True)*self.weightedgain,self.currentdoa)
-                            #self.q.put(data, timeout=timeout)
-                            compGain = math.pow(10,self.insitucompensate(numofspeakers,optimaldistance)/20)
-                            data = f.read(self.blocksize, always_2d=True)*self.weightedgain*compGain
-                            self.q.put(data, timeout=timeout)
-                    self.event.wait()  # Wait until playback is finished
-                if self.maskercounter<4 and varymaskers== True:
-                    self.maskercounter+=1
-                else:
-                    self.maskercounter=0
-                print("masker counter=" + str(self.maskercounter))
-                print("read done")
+            data1 = f1*self.weightedgain1
+            compGain = math.pow(10,self.insitucompensate(numofspeakers,optimaldistance)/20)
+            print('Compensated gain: {} dB'.format(20*math.log10(compGain)))
+            try:
+                amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_LEAST_ONCE)
+            except:
+                pass
+            sd.play(data1*compGain, fs1, device=2)
+            sd.wait()
         except KeyboardInterrupt:
             pass
-        
 
     def streamcallback(self, outdata, frames, time, status):
         data = np.zeros((self.blocksize,1))
@@ -440,6 +384,7 @@ class soundplayer:
 
         while True:
             dateindex = 0
+            print(dateindex)
             switch, date = dtchecker.main()
             for date2 in datelist:
                 date2 = str(date2)    
@@ -469,13 +414,18 @@ class soundplayer:
                     elif switch == 0:
                         self.ambient()
                 dateindex += 1
-                time.sleep(1)
 
     def mqttlooper(self):
         while True:
-            self.MQTTClient.subscribeAsync(self.mqttTOPIC, 0,messageCallback = self.msgcallback)
+            try:             
+                self.MQTTClient.subscribeAsync(self.mqttTOPIC, 0,messageCallback = self.msgcallback)
+            except:
+                pass
             time.sleep(1)
-            iotClient.subscribeAsync(TOPIC, 0,messageCallback = self.customcallback)
+            try:
+                iotClient.subscribeAsync(TOPIC, 0,messageCallback = self.customcallback)
+            except:
+                pass
             time.sleep(1)
     def customcallback(self, client, userdata, message):
         incomingmsgs=json.loads(message.payload.decode('utf-8'))
@@ -495,11 +445,13 @@ sp = soundplayer()
 
 sp.MQTTClient.connectAsync()
 print("connected to mqtt")
+
+# Configuration for connection to IoT Core for software switch
 ENDPOINT = "a5i03kombapo4-ats.iot.ap-southeast-1.amazonaws.com"
 CLIENT_ID = "enviropluspi"
 PATH_TO_CERTIFICATE = "/home/pi/mqtt_client/certs/9972587da4767d10db7001fc18bab5b9124945c4762ebf246b6266e08352970b-certificate.pem.crt"
 PATH_TO_PRIVATE_KEY = "/home/pi/mqtt_client/certs/9972587da4767d10db7001fc18bab5b9124945c4762ebf246b6266e08352970b-private.pem.key"
-PATH_TO_AMAZON_ROOT_CA_1 = "/home/pi/mqtt_client/certs/root.pem"
+PATH_TO_AMAZON_ROOT_CA_1 = "/home/pi/mqtt_client/certs/AmazonRootCA1.pem"
 TOPIC = "test/nbs"
 iotClient = AWSIoTPyMQTT.AWSIoTMQTTClient('nbsiot')
 iotClient.configureEndpoint(ENDPOINT, 8883)
@@ -520,15 +472,38 @@ mqtt_connection = mqtt_connection_builder.mtls_from_path(
 print("Connecting to {} with client ID '{}'...".format(
         ENDPOINT, CLIENT_ID))
 
-    
 iotClient.connectAsync()
 print("Connected to test/nbs")
-globalswitch = 0
+globalswitch = 9
 
 dummycsv = pd.read_csv("dummy.csv")
 print(dummycsv)
 datelist = list(dummycsv['date'])
 print(datelist)
+
+# Configuration for connection to IoT Core to log predictions from AMSS mode
+CLIENT_IDlogging = 'AMSSlogging'
+amssTOPIC = 'amss/logging'
+amssClient = AWSIoTPyMQTT.AWSIoTMQTTClient(CLIENT_IDlogging)
+amssClient.configureEndpoint(ENDPOINT, 8883)
+amssClient.configureCredentials(PATH_TO_AMAZON_ROOT_CA_1, PATH_TO_PRIVATE_KEY, PATH_TO_CERTIFICATE)
+event_loop_group = io.EventLoopGroup(1)
+host_resolver = io.DefaultHostResolver(event_loop_group)
+client_bootstrap = io.ClientBootstrap(event_loop_group, host_resolver)
+mqtt_connection = mqtt_connection_builder.mtls_from_path(
+            endpoint=ENDPOINT,
+            cert_filepath=PATH_TO_CERTIFICATE,
+            pri_key_filepath=PATH_TO_PRIVATE_KEY,
+            client_bootstrap=client_bootstrap,
+            ca_filepath=PATH_TO_AMAZON_ROOT_CA_1,
+            client_id=CLIENT_IDlogging,
+            clean_session=False,
+            keep_alive_secs=6
+            )
+print("Connecting to {} with client ID '{}'...".format(
+        ENDPOINT, CLIENT_IDlogging))
+amssClient.connectAsync()
+print('Connected to amss/logging')
 
 mqtt_thread = threading.Thread(
         target=sp.mqttlooper,
