@@ -1,5 +1,6 @@
 # UMA8 Pi Setup
 Enter the commands in the following order:
+
   <code>systemctl stop watchdog
   systemctl stop stp
   docker rm -f aime_mqtt
