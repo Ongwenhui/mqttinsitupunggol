@@ -1,10 +1,10 @@
 # UMA8 Pi Setup
 Enter the commands in the following order:
 ```
-  systemctl stop watchdog
-  systemctl stop stp
-  docker rm -f aime_mqtt
-  /usr/bin/docker run -it --name aime_mqtt -w /home/code -v /etc/myboard/codes/rpi_iot:/home/code -v /dev/shm/recordings:/dev/shm/recordings -v /etc/myboard:/etc/myboard --device /dev/snd --net host aus_mqtt:latest
+systemctl stop watchdog
+systemctl stop stp
+docker rm -f aime_mqtt
+/usr/bin/docker run -it --name aime_mqtt -w /home/code -v /etc/myboard/codes/rpi_iot:/home/code -v /dev/shm/recordings:/dev/shm/recordings -v /etc/myboard:/etc/myboard --device /dev/snd --net host aus_mqtt:latest
 ```
 Once inside the docker, run the commands in the following order:
 ```
