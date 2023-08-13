@@ -237,7 +237,15 @@ class soundplayer:
             if name == maskerkey:
                 realgain = calib[name][gainindex]
                 print(realgain)
-
+                
+        location = f'{LOCATION_ID}'
+        sendmasker = f'{name}'
+        predictionsdict = {"Prediction": sendmasker, "basescore": 0, "doa": 0, "basespl": gain, "from": location}
+        print(predictionsdict)
+        predictionsdict = str(predictionsdict).replace("'", '"')
+        try:
+            amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_LEAST_ONCE)
+        except:
         #compensated gain for distance and num of speakers
         compGain = math.pow(10,self.insitucompensate(numofspeakers,optimaldistance)/20)
         print('Compensated gain: {} dB'.format(20*math.log10(compGain)))
@@ -272,6 +280,16 @@ class soundplayer:
 
         #compensated gain for distance and num of speakers
         compGain = math.pow(10,self.insitucompensate(numofspeakers,optimaldistance)/20)
+        location = f'{LOCATION_ID}'
+        sendmasker = f'{randommasker}'
+        predictionsdict = {"Prediction": sendmasker, "basescore": 0, "doa": 0, "basespl": randomgain, "from": location}
+        print(predictionsdict)
+        predictionsdict = str(predictionsdict).replace("'", '"')
+        try:
+            amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_LEAST_ONCE)
+        except:
+            pass
+        
         print('Compensated gain: {} dB'.format(20*math.log10(compGain)))
         print(self.maskerpath + randommasker)
         print('now playing random masker {} with gain: {} as DOA {}'.format(randommasker, realgain*compGain, self.currentdoa))
@@ -336,7 +354,7 @@ class soundplayer:
                                                                                    self.weightedgain1,
                                                                                    self.currentdoa))
             location = f'{LOCATION_ID}'
-            sendmasker = f'{self.currentmasker}'
+            sendmasker = f'{self.currentmasker1}'
             predictionsdict = {"Prediction": sendmasker, "basescore": self.msgdict['base_score'], "doa": self.msgdict['doa'], "basespl": self.msgdict['base_spl'], "from": location}
             print(predictionsdict)
             predictionsdict = str(predictionsdict).replace("'", '"')
