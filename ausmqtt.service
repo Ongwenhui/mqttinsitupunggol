@@ -1,11 +1,14 @@
 [Unit]
-Description=service for starting aus mqtt container
+Description=service for starting ausmqtt container
 
 [Service]
-ExecStartPre=/bin/systemctl stop watchdog
-ExecStartPre=/bin/systemctl stop stp
-ExecStartPre=/usr/bin/docker rm -f aime_mqtt || echo "no container, moving on..."
-ExecStart=/usr/bin/docker run --name aime_mqtt -w /home/code -v /etc/myboard/codes/rpi_iot:/home/code -v /dev/shm/recordings:/dev/shm/recordings -v /etc/myboard:/etc/myboard --device /dev/snd --net host aus_mqtt:latest
+ExecStartPre=systemctl stop watchdog
+ExecStartPre=systemctl stop stp
+ExecStartPre=/etc/myboard/codes/rpi_iot/trycatchrmaime.sh
+ExecStartPre=/usr/bin/docker container prune -f
+ExecStartPre=/usr/bin/docker run -dt --name aime_mqtt -w /home/code -v /etc/myboard/codes/rpi_iot:/home/code -v /dev/shm/recordings:/dev/shm/recordings -v /etc/myboard:/etc/myboard --device /dev/snd --net host aus_mqtt:latest
+ExecStartPre=/usr/bin/docker exec aime_mqtt bash -c "chmod +x startup.sh"
+ExecStart=/usr/bin/docker exec -dt aime_mqtt /home/code/startup.sh
 
 [Install]
 WantedBy=multi-user.target
