@@ -1,17 +1,17 @@
 # ~UMA8 Pi Setup~
-Enter the commands in the following order:
+<strike>Enter the commands in the following order:</strike>
 ```
 systemctl stop watchdog
 systemctl stop stp
 docker rm -f aime_mqtt
 /usr/bin/docker run -it --name aime_mqtt -w /home/code -v /etc/myboard/codes/rpi_iot:/home/code -v /dev/shm/recordings:/dev/shm/recordings -v /etc/myboard:/etc/myboard --device /dev/snd --net host aus_mqtt:latest
 ```
-Once inside the docker, run the commands in the following order:
+<strike>Once inside the docker, run the commands in the following order:</strike>
 ```
 nohup python3 runMQTT.py 127.17.0.1 3000 &
 disown %1
 ```
-This prevents SIGHUP from affecting the python script.~
+<strike>This prevents SIGHUP from affecting the python script.</strike>
 
 # daily.sh
 Put in <code>/etc/systemd/system/</code>
