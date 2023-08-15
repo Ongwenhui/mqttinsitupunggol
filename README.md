@@ -1,6 +1,6 @@
 # ausmqtt.service setup
-Service to restart the aus_mqtt docker whenever the Rpi restarts. Ensure that <code>daily.sh</code> is in the correct directory and crontab has the correct lines (see below)
-Put in <code>/etc/systemd/system/</code>
+Service to restart the aus_mqtt docker whenever the Rpi restarts. Ensure that <code>daily.sh</code> is in the correct directory and crontab has the correct lines (see below)<br>
+Put in <code>/etc/systemd/system/</code><br>
 Run <code>systemctl enable ausmqtt.service</code>. This ensures that the service runs on Rpi startup.
 
 ## trycatchrmaime.sh
