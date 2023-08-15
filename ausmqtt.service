@@ -6,9 +6,8 @@ ExecStartPre=systemctl stop watchdog
 ExecStartPre=systemctl stop stp
 ExecStartPre=/etc/myboard/codes/rpi_iot/trycatchrmaime.sh
 ExecStartPre=/usr/bin/docker container prune -f
-ExecStartPre=/usr/bin/docker run -dt --name aime_mqtt -w /home/code -v /etc/myboard/codes/rpi_iot:/home/code -v /dev/shm/recordings:/dev/shm/recordings -v /etc/myboard:/etc/myboard --device /dev/snd --net host aus_mqtt:latest
-ExecStartPre=/usr/bin/docker exec aime_mqtt bash -c "chmod +x startup.sh"
-ExecStart=/usr/bin/docker exec -dt aime_mqtt /home/code/startup.sh
+ExecStartPre=/usr/bin/docker run -dt --privileged --name aime_mqtt -w /home/code -v /etc/myboard/codes/rpi_iot:/home/code -v /dev/shm/recordings:/dev/shm/recordings -v /etc/myboard:/etc/myboard --device /dev/snd --net host aus_mqtt:latest
+ExecStart=/usr/bin/docker exec -dt aime_mqtt bash -c "python3 /home/code/runMQTT.py 127.17.0.1 3000"
 
 [Install]
 WantedBy=multi-user.target
