@@ -1,4 +1,4 @@
-# UMA8 Pi Setup
+~# UMA8 Pi Setup
 Enter the commands in the following order:
 ```
 systemctl stop watchdog
@@ -11,7 +11,7 @@ Once inside the docker, run the commands in the following order:
 nohup python3 runMQTT.py 127.17.0.1 3000 &
 disown %1
 ```
-This prevents SIGHUP from affecting the python script.
+This prevents SIGHUP from affecting the python script.~
 
 # daily.sh
 Put in <code>/etc/systemd/system/</code>
