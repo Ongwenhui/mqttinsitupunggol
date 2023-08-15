@@ -17,10 +17,10 @@ This prevents SIGHUP from affecting the python script.
 Put in <code>/etc/systemd/system/</code>
 
 # crontab
-'''
+```
 0 3 * * * /etc/systemd/system/daily.sh
 */10 * * * * /etc/systemd/system/hourly.sh 150000
-'''
+```
 # mqttinsitupunggol
 
 Rmb to change location_id<br>
