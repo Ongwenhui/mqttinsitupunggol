@@ -1,4 +1,4 @@
-~# UMA8 Pi Setup
+# ~UMA8 Pi Setup~
 Enter the commands in the following order:
 ```
 systemctl stop watchdog
