@@ -1,4 +1,6 @@
-# ausmqtt.service setup
+# UMA8 Pi Setup
+<b>The following instructions are meant for the UMA8 PI!</b>
+## ausmqtt.service setup
 Service to restart the aus_mqtt docker whenever the Rpi restarts. Ensure that <code>daily.sh</code> is in the correct directory and crontab has the correct lines (see below)<br>
 Put in <code>/etc/systemd/system/</code><br>
 Run <code>systemctl enable ausmqtt.service</code>. This ensures that the service runs on Rpi startup.
@@ -6,6 +8,14 @@ Run <code>systemctl enable ausmqtt.service</code>. This ensures that the service
 ## trycatchrmaime.sh
 Put in <code>/etc/myboard/codes/rpi_iot/</code>. Remember to run <code>chmod +x trycatchrmaime.sh</code>
 
+## daily.sh
+Put in <code>/etc/systemd/system/</code>
+
+## crontab
+```
+0 3 * * * /etc/systemd/system/daily.sh
+*/10 * * * * /etc/systemd/system/hourly.sh 150000
+```
 # ~UMA8 Pi Setup~ Deprecated
 <strike>Enter the commands in the following order:</strike>
 ```
@@ -20,17 +30,9 @@ nohup python3 runMQTT.py 127.17.0.1 3000 &
 disown %1
 ```
 <strike>This prevents SIGHUP from affecting the python script.</strike>
-
-# daily.sh
-Put in <code>/etc/systemd/system/</code>
-
-# crontab
-```
-0 3 * * * /etc/systemd/system/daily.sh
-*/10 * * * * /etc/systemd/system/hourly.sh 150000
-```
-# mqttinsitupunggol
-
+# Playback Pi codes
+<b>The following instructions are for the playback Pi!</b>
+## mqttinsitupunggol
 Rmb to change location_id<br>
 Make sure device=7 for older versions of MCHStreamer (PCP setup) for all instances of sd.play()
 
