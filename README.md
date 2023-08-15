@@ -1,4 +1,12 @@
-# ~UMA8 Pi Setup~
+# ausmqtt.service setup
+Service to restart the aus_mqtt docker whenever the Rpi restarts. Ensure that <code>daily.sh</code> is in the correct directory and crontab has the correct lines (see below)
+Put in <code>/etc/systemd/system/</code>
+Run <code>systemctl enable ausmqtt.service</code>. This ensures that the service runs on Rpi startup.
+
+## trycatchrmaime.sh
+Put in <code>/etc/myboard/codes/rpi_iot/</code>. Remember to run <code>chmod +x trycatchrmaime.sh</code>
+
+# ~UMA8 Pi Setup~ Deprecated
 <strike>Enter the commands in the following order:</strike>
 ```
 systemctl stop watchdog
