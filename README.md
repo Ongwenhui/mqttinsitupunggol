@@ -16,22 +16,12 @@ Put in <code>/etc/systemd/system/</code>
 0 3 * * * /etc/systemd/system/daily.sh
 */10 * * * * /etc/systemd/system/hourly.sh 150000
 ```
-# ~UMA8 Pi Setup~ Deprecated
-<strike>Enter the commands in the following order:</strike>
-```
-systemctl stop watchdog
-systemctl stop stp
-docker rm -f aime_mqtt
-/usr/bin/docker run -it --name aime_mqtt -w /home/code -v /etc/myboard/codes/rpi_iot:/home/code -v /dev/shm/recordings:/dev/shm/recordings -v /etc/myboard:/etc/myboard --device /dev/snd --net host aus_mqtt:latest
-```
-<strike>Once inside the docker, run the commands in the following order:</strike>
-```
-nohup python3 runMQTT.py 127.17.0.1 3000 &
-disown %1
-```
-<strike>This prevents SIGHUP from affecting the python script.</strike>
 # Playback Pi codes
 <b>The following instructions are for the playback Pi!</b>
+
+## Playback Pi Password
+Hi3bdoS@
+
 ## mqttinsitupunggol
 Rmb to change location_id<br>
 Make sure device=7 for older versions of MCHStreamer (PCP setup) for all instances of sd.play()
