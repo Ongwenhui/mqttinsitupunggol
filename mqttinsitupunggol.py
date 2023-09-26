@@ -427,6 +427,8 @@ class soundplayer:
                                 self.playmasker()
                             elif masker == 'random':
                                 self.playrandommasker()
+                            elif masker == 'silence':
+                                self.playsilence()
                             else:
                                 self.playfixedmasker(masker, gain)
                     elif switch == 0:
