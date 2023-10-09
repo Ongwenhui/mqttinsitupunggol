@@ -37,7 +37,23 @@ Script to check date and time. If dt.now() falls in between target time period, 
 Requires screen to run <code>(apt-get install screen)</code>. Run the script in a separate screen so that it continues running even when terminal is killed. Main function to play maskers from <code>dummy.csv</code> in specified order.
 
 ## dummy.csv
-Contains dates and the maskers to be played on those dates. Also contains target SPL information that is currently not in use at the moment.
+There are 4 headers in this csv file:
+
+### date
+Contains an integer that references the date that the masker in the same row will be played in the yyyymmdd format.
+
+### mode
+Contains a string detailing the mode the playback will operate in. There are 4 modes in which the masker playback can operate:<br>
+1. <code>amss</code> runs the Automatic Masker Selection System.<br>
+2. <code>silence</code> plays <code>maskers/silence3s.wav</code>.<br>
+3. <code>random</code> plays a random masker at a random SPL.<br>
+4. <code><masker_name></code> plays a specific masker at the SPL specified in the same row.
+
+### spl
+Only applicable for playing a fixed masker. Contains an integer specifying the SPL the masker is to be played at.
+
+### location_id
+Not in use for now.
 
 ## mqttpunggolvalidation.py
 Script to validate levels of maskers played. Input the name of the masker to be played in full (e.g. <code>bird_00075</code> and the target SPL from between 46 and 83. If specified masker has no gain information in the csv file (e.g. <code>White_0.2_30s</code>, input 0 as the target SPL instead.
