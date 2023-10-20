@@ -17,6 +17,18 @@ Put in <code>/etc/systemd/system/</code>
 0 3 * * * /etc/systemd/system/daily.sh
 */10 * * * * /etc/systemd/system/hourly.sh 150000
 ```
+# YNG Study Setup
+Read this before reading the part about Playback codes below! The YNG setup is slightly different!
+
+## Docker for YNG setup
+The YNG is running in a docker container called <code>mqttpunggol</code> for additional stability and integration with the NBS study. There are several modes of operation that must be toggled using the software switch:<br>
+Mode 0: Plays silence<br>
+Mode 1: Playback is running in AMSS mode<br>
+Mode 2: Plays the 4channel test tone<br>
+Mode 9: Reads the playback mode from <code>dummy.csv</code><br>
+
+The YNG playback RPi is set to restart everyday at 3am. Set <code>device=1</code> for all instances of <code>sd.play()</code>.
+
 # Playback Pi codes
 <b>The following instructions are for the playback Pi!</b>
 
