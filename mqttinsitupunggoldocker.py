@@ -21,7 +21,6 @@ import csv
 import pandas as pd
 import random
 from pydub import AudioSegment
-import keyboard
 import sys
 import tty
 import termios
@@ -33,7 +32,7 @@ from awsiot import mqtt_connection_builder
 varymaskers = False
 MEOW = False
 
-calibjsonpath = "calib.json"
+calibjsonpath = "/mqttpunggol/calib.json"
 
 def interpolate(masker,gain):
     f = open(calibjsonpath, "r")
@@ -214,11 +213,11 @@ class soundplayer:
     def playsilence(self):
         print('playing silence')
         silence, silencefs = sf.read(self.maskerpath + "silence3s.wav", dtype='float32')
-        sd.play(silence, silencefs, device=2)
+        sd.play(silence, silencefs, device=1)
         sd.wait()
     def playtesttone(self):
         testtone, testtonefs = sf.read('/mqttpunggol/4channel.wav')
-        sd.play(testtone, testtonefs, device=2)
+        sd.play(testtone, testtonefs, device=1)
         sd.wait()
     def playfixedmasker(self, name, gain):
         fixedmaskers, fs = sf.read(self.maskerpath + name + '.wav')
@@ -238,14 +237,14 @@ class soundplayer:
         try:
             amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_LEAST_ONCE)
         except:
-        #compensated gain for distance and num of speakers
-        compGain = math.pow(10,self.insitucompensate(numofspeakers,optimaldistance)/20)
-        print('Compensated gain: {} dB'.format(20*math.log10(compGain)))
-        print(self.maskerpath + name)
-        print('now playing fixed masker {} with gain: {} as DOA {}'.format(name, realgain*compGain, self.currentdoa))
+            #compensated gain for distance and num of speakers
+            compGain = math.pow(10,self.insitucompensate(numofspeakers,optimaldistance)/20)
+            print('Compensated gain: {} dB'.format(20*math.log10(compGain)))
+            print(self.maskerpath + name)
+            print('now playing fixed masker {} with gain: {} as DOA {}'.format(name, realgain*compGain, self.currentdoa))
 
-        sd.play(fixedmaskers*realgain*compGain, fs, device=2)
-        sd.wait()
+            sd.play(fixedmaskers*realgain*compGain, fs, device=1)
+            sd.wait()
         
     def playrandommasker(self):
         randomlist = ['bird', 'water', 'wind']
@@ -286,7 +285,7 @@ class soundplayer:
         print(self.maskerpath + randommasker)
         print('now playing random masker {} with gain: {} as DOA {}'.format(randommasker, realgain*compGain, self.currentdoa))
 
-        sd.play(fixedmaskers*realgain*compGain, fs, device=2)
+        sd.play(fixedmaskers*realgain*compGain, fs, device=1)
         sd.wait()
     def playmasker(self):
         self.q = queue.Queue()
@@ -358,7 +357,7 @@ class soundplayer:
                 amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_LEAST_ONCE)
             except:
                 pass
-            sd.play(data1*compGain, fs1, device=2)
+            sd.play(data1*compGain, fs1, device=1)
             sd.wait()
         except KeyboardInterrupt:
             pass
@@ -452,6 +451,7 @@ class soundplayer:
             globalswitch = int(splitpayload[1][3])
         else:
             globalswitch = 0
+        return globalswitch
 
 sp = soundplayer()
 
@@ -490,10 +490,11 @@ print("Connected to test/nbs")
 # Set to 9 by default for Punggol study, comment out if is YNG study
 # globalswitch = 9
 
-dummycsv = pd.read_csv("dummy.csv")
+dummycsv = pd.read_csv("/mqttpunggol/dummy.csv")
 print(dummycsv)
 datelist = list(dummycsv['date'])
 print(datelist)
+globalswitch = 0
 
 # Configuration for connection to IoT Core to log predictions from AMSS mode
 CLIENT_IDlogging = 'AMSSlogging'
