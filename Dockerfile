@@ -33,6 +33,7 @@ RUN apt-get install -y build-essential libssl-dev libffi-dev python-dev
 RUN python3 -m pip install AWSIoTPythonSDK
 RUN python3 -m pip install soundfile
 RUN python3 -m pip install sounddevice
+RUN python3 -m pip install pydub
 RUN apt-get install -y python3-pandas
 COPY . /mqttpunggol
 RUN make /mqttpunggol
