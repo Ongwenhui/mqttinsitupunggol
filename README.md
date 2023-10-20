@@ -23,7 +23,7 @@ Read this before reading the part about Playback codes below! The YNG setup is s
 ## Docker for YNG setup
 The YNG is running in a docker container called <code>mqttpunggol</code> for additional stability and integration with the NBS study. There are several modes of operation that must be toggled using the software switch:<br>
 Mode 0: Plays silence<br>
-Mode 1: Playback is running in AMSS mode<br>
+Mode 1: Runs AMSS mode (Use for NBS study).<br>
 Mode 2: Plays the 4channel test tone<br>
 Mode 9: Reads the playback mode from <code>dummy.csv</code><br>
 
