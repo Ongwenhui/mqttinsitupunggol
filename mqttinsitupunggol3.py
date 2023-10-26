@@ -469,6 +469,7 @@ class soundplayer:
                 pass
             time.sleep(1)
 
+    # Publish blank payload to mqttnbs shadow to request for the current state of the shadow
     def open_get_request(self):
         print("Opening Get request...")
         self.open_get_request_future = self.shadow_client.publish_get_named_shadow(
@@ -479,7 +480,8 @@ class soundplayer:
             qos=mqtt.QoS.AT_LEAST_ONCE
         )
         self.open_get_request_future.result()
-        
+
+    # Subscribes to the /get/accepted topic after the get request is opened in open_get_request. Callback = on_get_shadow_accepted
     def get_accepted_responses(self):
         print("Subscribing to Get responses...")
         self.get_accepted_subscribed_future, self.get_shadow_accepted_topic = self.shadow_client.subscribe_to_get_named_shadow_accepted(
@@ -487,7 +489,8 @@ class soundplayer:
             qos=mqtt.QoS.AT_LEAST_ONCE,
             callback=self.on_get_shadow_accepted)
         self.get_accepted_subscribed_future.result()
-    
+
+    # Callback retrieves the new state from the response and assigns that value to globalswitch
     def on_get_shadow_accepted(self, response):
         print("-------------------on_get_shadow_accepted starts here-----------------------")
         if response:
@@ -498,7 +501,8 @@ class soundplayer:
             return globalswitch
         else:
             print('eeeeee')
-            
+
+    # Publishes the current state of the device back to the IoT Core topic 'mqtt/statereturn'
     def send_back_to_iot(self, globalswitch, LOCATION_ID):
         self.returnmessage = f'globalswitch at {LOCATION_ID} is now {globalswitch}'
         self.returnmessagedict = {"message" : self.returnmessage, "state" : globalswitch}
