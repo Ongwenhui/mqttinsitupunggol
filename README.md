@@ -22,13 +22,21 @@ Put in <code>/etc/systemd/system/</code>
 Read this before reading the part about Playback codes below! The YNG setup is slightly different!
 
 # Docker for YNG setup
-The YNG is running in a docker container called <code>mqttpunggol</code> for additional stability and integration with the NBS study. There are several modes of operation that must be toggled using the software switch:<br>
+The YNG code is running in a docker container called <code>mqttpunggol</code> for additional stability and integration with the NBS study. There are several modes of operation that must be toggled using the software switch:<br>
 Mode 0: Plays silence<br>
 Mode 1: Runs AMSS mode (Use for NBS study).<br>
 Mode 2: Plays the 4channel test tone<br>
 Mode 9: Reads the playback mode from <code>dummy.csv</code><br>
 
 The YNG playback RPi is set to restart everyday at 3am. Set <code>device=1</code> for all instances of <code>sd.play()</code>.<br><br>
+
+# mqttinsitupunggol3.py and mqttinsitupunggoldocker3.py
+<b>UPDATED 26/10/23!</b><br>
+The latest version of the playback code connects to a device shadow on IoT Core instead of subscribing to a singular topic. The desired state of the device is stored in the device shadow and retrieved by the python script. The device also broadcasts the current state of the playback code to the topic 'mqtt/statereturn'.
+```
+thing_name = 'WenhuiAWSThing'
+shadow_name = 'mqttnbs'
+```
 ### ----------------------------------------------- END OF SECTION -----------------------------------------------
 
 # Playback Pi codes
