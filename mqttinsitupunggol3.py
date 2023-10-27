@@ -85,10 +85,10 @@ def readcsv(csvfile):
                 entrycount += 1
     return calibgains
 
-calibgains = readcsv('/home/pi/mqtt_client/Calibrations_final_speaker.csv')
+calibgains = readcsv('/home/pi/mqtt_client/Calibrations_final_speaker_moukey.csv')
 
-LOCATION_ID = 'demo'
-optimaldistance = 2.4
+LOCATION_ID = 'PCP_820222'
+optimaldistance = 1.8 # Punggol MSCP
 numofspeakers = 4
 class soundplayer:
     def __init__(self,
@@ -101,6 +101,7 @@ class soundplayer:
         connected_future = None,
         shadow_client    = None,
                  ):
+        self.LOCATION_ID = 'PCP_820222'
         self.mqttENDPOINT="a5i03kombapo4-ats.iot.ap-southeast-1.amazonaws.com"
         self.mqttCLIENT_ID= "AIMEGET"
         self.mqttcertfolder="/home/pi/mqtt_client/certs/"
@@ -241,11 +242,11 @@ class soundplayer:
     def playsilence(self):
         print('playing silence')
         silence, silencefs = sf.read(self.maskerpath + "silence3s.wav", dtype='float32')
-        sd.play(silence, silencefs, device=1)
+        sd.play(silence, silencefs, device=2)
         sd.wait()
     def playtesttone(self):
         testtone, testtonefs = sf.read('/home/pi/mqtt_client/4channel.wav')
-        sd.play(testtone, testtonefs, device=1)
+        sd.play(testtone, testtonefs, device=2)
         sd.wait()
     def playfixedmasker(self, name, gain):
         fixedmaskers, fs = sf.read(self.maskerpath + name + '.wav')
@@ -271,7 +272,7 @@ class soundplayer:
             print(self.maskerpath + name)
             print('now playing fixed masker {} with gain: {} as DOA {}'.format(name, realgain*compGain, self.currentdoa))
 
-            sd.play(fixedmaskers*realgain*compGain, fs, device=1)
+            sd.play(fixedmaskers*realgain*compGain, fs, device=2)
             sd.wait()
         
     def playrandommasker(self):
@@ -313,7 +314,7 @@ class soundplayer:
         print(self.maskerpath + randommasker)
         print('now playing random masker {} with gain: {} as DOA {}'.format(randommasker, realgain*compGain, self.currentdoa))
 
-        sd.play(fixedmaskers*realgain*compGain, fs, device=1)
+        sd.play(fixedmaskers*realgain*compGain, fs, device=2)
         sd.wait()
     def playmasker(self):
         self.q = queue.Queue()
@@ -385,7 +386,7 @@ class soundplayer:
                 amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_LEAST_ONCE)
             except:
                 pass
-            sd.play(data1*compGain, fs1, device=1)
+            sd.play(data1*compGain, fs1, device=2)
             sd.wait()
         except KeyboardInterrupt:
             pass
@@ -496,11 +497,12 @@ class soundplayer:
         if response:
             print(response)
             global globalswitch
-            globalswitch = response.state.desired['onoff']
-            print(f"globalswitch = {globalswitch}")
-            return globalswitch
-        else:
-            print('eeeeee')
+            if response.state.desired['location_id'] == self.LOCATION_ID:
+                globalswitch = response.state.desired['onoff']
+                print(f"globalswitch = {globalswitch}")
+                return globalswitch
+            else:
+                print('Not for current location')
 
     # Publishes the current state of the device back to the IoT Core topic 'mqtt/statereturn'
     def send_back_to_iot(self, globalswitch, LOCATION_ID):
