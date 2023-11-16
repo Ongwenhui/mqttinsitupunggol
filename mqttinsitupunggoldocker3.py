@@ -441,6 +441,10 @@ class soundplayer:
                             self.playmasker()
                         if globalswitch == 2:
                             self.playtesttone()
+                        if globalswitch == 7:
+                            self.playrandommasker()
+                        if globalswitch == 8:
+                            self.playfixedmasker('bird_prior', gain) # check name of bird prior masker and gain
                         if globalswitch == 9:
                             if masker == 'amss':
                                 self.playmasker()
