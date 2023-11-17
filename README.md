@@ -63,7 +63,7 @@ csv file with updated gain values for the new Moukey speakers.
 Script to check date and time. If dt.now() falls in between target time period, return 1 and the current datetime in str format. Else, return 0 and the current datetime in str format. Import this function and call dtchecker.main() to use.
 
 ## mqttinsitupunggol.py (DEPRECATED!!!!!!)
-==Requires screen to run <code>(apt-get install screen)</code>. Run the script in a separate screen so that it continues running even when terminal is killed. Main function to play maskers from <code>dummy.csv</code> in specified order.--
+--Requires screen to run <code>(apt-get install screen)</code>. Run the script in a separate screen so that it continues running even when terminal is killed. Main function to play maskers from <code>dummy.csv</code> in specified order.--
 
 ## dummy.csv
 There are 4 headers in this csv file:
