@@ -85,7 +85,7 @@ def readcsv(csvfile):
                 entrycount += 1
     return calibgains
 
-calibgains = readcsv('/mqttnbs/Calibrations_final_speaker.csv')
+calibgains = readcsv('/mqttnbs/Calibrations_final_speaker_moukey.csv')
 
 LOCATION_ID = 'demo'
 optimaldistance = 2.4
