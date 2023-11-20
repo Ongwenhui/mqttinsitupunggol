@@ -1,10 +1,3 @@
-'''
-Important notes: soundlooper() -> keeps playmasker() running
-playmasker() -> plays selected masker from predictions
-
-NAME FOR DIRECTORY IN DOCKER: mqttpunggol
-'''
-
 import json
 import AWSIoTPythonSDK.MQTTLib as AWSIoTPyMQTT
 #from PIL import Image
@@ -32,7 +25,7 @@ from awsiot import mqtt_connection_builder, iotshadow
 varymaskers = False
 MEOW = False
 
-calibjsonpath = "/mqttnbs/calib.json"
+calibjsonpath = "/mqttpunggol/calib.json"
 
 def interpolate(masker,gain):
     f = open(calibjsonpath, "r")
@@ -85,9 +78,9 @@ def readcsv(csvfile):
                 entrycount += 1
     return calibgains
 
-calibgains = readcsv('/mqttnbs/Calibrations_final_speaker_moukey.csv')
+calibgains = readcsv('/mqttpunggol/Calibrations_final_speaker_moukey.csv')
 
-LOCATION_ID = 'demo'
+LOCATION_ID = 'NTU_YNG_639798'
 optimaldistance = 2.4
 numofspeakers = 4
 class soundplayer:
@@ -103,7 +96,7 @@ class soundplayer:
                  ):
         self.mqttENDPOINT="a5i03kombapo4-ats.iot.ap-southeast-1.amazonaws.com"
         self.mqttCLIENT_ID= "AIMEGET"
-        self.mqttcertfolder="/mqttnbs/certs/"
+        self.mqttcertfolder="/mqttpunggol/certs/"
         self.mqttPATH_TO_CERTIFICATE = self.mqttcertfolder + "c86008d5f6f3eb115159777ba9da6c0b97bfdf2309c15020c8d1d2747e4f6bdc-certificate.pem.crt"
         self.mqttPATH_TO_AMAZON_ROOT_CA_1 = self.mqttcertfolder + "AmazonRootCA1.pem"
         self.mqttPATH_TO_PRIVATE_KEY=self.mqttcertfolder + "c86008d5f6f3eb115159777ba9da6c0b97bfdf2309c15020c8d1d2747e4f6bdc-private.pem.key"
@@ -119,7 +112,7 @@ class soundplayer:
         self.fixedmasker = 'playing fixed masker = '
         self.msgdict = None
         self.currentmasker = "bird_00075" if not MEOW else "meow"
-        self.maskerpath = "/mqttnbs/maskers/"
+        self.maskerpath = "/mqttpunggol/maskers/"
         self.maskergain = 1.2
         self.gainweight = 1    
         self.maskerdiff = 0.0001
@@ -244,51 +237,53 @@ class soundplayer:
         sd.play(silence, silencefs, device=1)
         sd.wait()
     def playtesttone(self):
-        testtone, testtonefs = sf.read('/mqttnbs/4channel.wav')
+        testtone, testtonefs = sf.read('/mqttpunggol/4channel.wav')
         sd.play(testtone, testtonefs, device=1)
         sd.wait()
 
     def playbirdprior(self):
         bird_prior, fs = sf.read(self.maskerpath + 'bird_prior.wav')
-        gain = 0.056027
+        bird_priorgain = 0.056027
 
         location = f'{LOCATION_ID}'
         sendmasker = 'bird_prior'
-        predictionsdict = {"Prediction": sendmasker, "basescore": 0, "doa": 0, "basespl": gain, "from": location}
+        predictionsdict = {"Prediction": sendmasker, "basescore": 0, "doa": 0, "basespl": bird_priorgain, "from": location}
         print(predictionsdict)
         predictionsdict = str(predictionsdict).replace("'", '"')
+        #compensated gain for distance and num of speakers
+        compGain = math.pow(10,self.insitucompensate(numofspeakers,optimaldistance)/20)
+        print('Compensated gain: {} dB'.format(20*math.log10(compGain)))
+        print(self.maskerpath + 'bird_prior')
+        print('now playing fixed masker {} with gain: {} as DOA {}'.format('bird_prior', bird_priorgain*compGain, self.currentdoa))
+
+        sd.play(bird_prior*bird_priorgain*compGain, fs, device=1)
+        sd.wait()
         try:
             amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_LEAST_ONCE)
         except:
-            #compensated gain for distance and num of speakers
-            compGain = math.pow(10,self.insitucompensate(numofspeakers,optimaldistance)/20)
-            print('Compensated gain: {} dB'.format(20*math.log10(compGain)))
-            print(self.maskerpath + name)
-            print('now playing fixed masker {} with gain: {} as DOA {}'.format(name, realgain*compGain, self.currentdoa))
-
-            sd.play(bird_prior*realgain*compGain, fs, device=1)
-            sd.wait()
+            pass
 
     def playwaterprior(self):
         water_prior, fs = sf.read(self.maskerpath + 'water_prior.wav')
-        gain = 0.036370
+        water_priorgain = 0.036370
 
         location = f'{LOCATION_ID}'
         sendmasker = 'water_prior'
         predictionsdict = {"Prediction": sendmasker, "basescore": 0, "doa": 0, "basespl": gain, "from": location}
         print(predictionsdict)
         predictionsdict = str(predictionsdict).replace("'", '"')
+        #compensated gain for distance and num of speakers
+        compGain = math.pow(10,self.insitucompensate(numofspeakers,optimaldistance)/20)
+        print('Compensated gain: {} dB'.format(20*math.log10(compGain)))
+        print(self.maskerpath + name)
+        print('now playing fixed masker {} with gain: {} as DOA {}'.format('water_prior', water_priorgain*compGain, self.currentdoa))
+
+        sd.play(water_prior*water_priorgain*compGain, fs, device=1)
+        sd.wait()
         try:
             amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_LEAST_ONCE)
         except:
-            #compensated gain for distance and num of speakers
-            compGain = math.pow(10,self.insitucompensate(numofspeakers,optimaldistance)/20)
-            print('Compensated gain: {} dB'.format(20*math.log10(compGain)))
-            print(self.maskerpath + name)
-            print('now playing fixed masker {} with gain: {} as DOA {}'.format(name, realgain*compGain, self.currentdoa))
-
-            sd.play(water_prior*realgain*compGain, fs, device=1)
-            sd.wait()
+            pass
         
     def playfixedmasker(self, name, gain):
         fixedmaskers, fs = sf.read(self.maskerpath + name + '.wav')
@@ -305,17 +300,18 @@ class soundplayer:
         predictionsdict = {"Prediction": sendmasker, "basescore": 0, "doa": 0, "basespl": gain, "from": location}
         print(predictionsdict)
         predictionsdict = str(predictionsdict).replace("'", '"')
+        #compensated gain for distance and num of speakers
+        compGain = math.pow(10,self.insitucompensate(numofspeakers,optimaldistance)/20)
+        print('Compensated gain: {} dB'.format(20*math.log10(compGain)))
+        print(self.maskerpath + name)
+        print('now playing fixed masker {} with gain: {} as DOA {}'.format(name, realgain*compGain, self.currentdoa))
+
+        sd.play(fixedmaskers*realgain*compGain, fs, device=1)
+        sd.wait()
         try:
             amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_LEAST_ONCE)
         except:
-            #compensated gain for distance and num of speakers
-            compGain = math.pow(10,self.insitucompensate(numofspeakers,optimaldistance)/20)
-            print('Compensated gain: {} dB'.format(20*math.log10(compGain)))
-            print(self.maskerpath + name)
-            print('now playing fixed masker {} with gain: {} as DOA {}'.format(name, realgain*compGain, self.currentdoa))
-
-            sd.play(fixedmaskers*realgain*compGain, fs, device=1)
-            sd.wait()
+            pass
         
     def playrandommasker(self):
         randomlist = ['bird', 'water', 'wind']
@@ -514,6 +510,7 @@ class soundplayer:
                 self.get_accepted_responses()
                 self.send_back_to_iot(globalswitch, LOCATION_ID)
             except:
+                print("except")
                 pass
             time.sleep(1)
 
@@ -567,9 +564,9 @@ class soundplayer:
 # Configuration for connection to IoT Core for software switch
 ENDPOINT = "a5i03kombapo4-ats.iot.ap-southeast-1.amazonaws.com"
 CLIENT_ID = "enviropluspi"
-PATH_TO_CERTIFICATE = "/mqttnbs/certs/9972587da4767d10db7001fc18bab5b9124945c4762ebf246b6266e08352970b-certificate.pem.crt"
-PATH_TO_PRIVATE_KEY = "/mqttnbs/certs/9972587da4767d10db7001fc18bab5b9124945c4762ebf246b6266e08352970b-private.pem.key"
-PATH_TO_AMAZON_ROOT_CA_1 = "/mqttnbs/certs/AmazonRootCA1.pem"
+PATH_TO_CERTIFICATE = "/mqttpunggol/certs/9972587da4767d10db7001fc18bab5b9124945c4762ebf246b6266e08352970b-certificate.pem.crt"
+PATH_TO_PRIVATE_KEY = "/mqttpunggol/certs/9972587da4767d10db7001fc18bab5b9124945c4762ebf246b6266e08352970b-private.pem.key"
+PATH_TO_AMAZON_ROOT_CA_1 = "/mqttpunggol/certs/AmazonRootCA1.pem"
 
 thing_name = "WenhuiAWSthing"
 shadow_name = "mqttnbs"
@@ -611,7 +608,7 @@ print("connected to mqtt")
 # Set to 9 by default for Punggol study, comment out if is YNG study
 globalswitch = 0
 
-dummycsv = pd.read_csv("/mqttnbs/dummy.csv")
+dummycsv = pd.read_csv("/mqttpunggol/dummy.csv")
 print(dummycsv)
 datelist = list(dummycsv['date'])
 print(datelist)
