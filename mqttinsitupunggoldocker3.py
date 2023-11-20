@@ -247,6 +247,49 @@ class soundplayer:
         testtone, testtonefs = sf.read('/mqttnbs/4channel.wav')
         sd.play(testtone, testtonefs, device=1)
         sd.wait()
+
+    def playbirdprior(self):
+        bird_prior, fs = sf.read(self.maskerpath + 'bird_prior.wav')
+        gain = 0.056027
+
+        location = f'{LOCATION_ID}'
+        sendmasker = 'bird_prior'
+        predictionsdict = {"Prediction": sendmasker, "basescore": 0, "doa": 0, "basespl": gain, "from": location}
+        print(predictionsdict)
+        predictionsdict = str(predictionsdict).replace("'", '"')
+        try:
+            amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_LEAST_ONCE)
+        except:
+            #compensated gain for distance and num of speakers
+            compGain = math.pow(10,self.insitucompensate(numofspeakers,optimaldistance)/20)
+            print('Compensated gain: {} dB'.format(20*math.log10(compGain)))
+            print(self.maskerpath + name)
+            print('now playing fixed masker {} with gain: {} as DOA {}'.format(name, realgain*compGain, self.currentdoa))
+
+            sd.play(bird_prior*realgain*compGain, fs, device=1)
+            sd.wait()
+
+    def playwaterprior(self):
+        water_prior, fs = sf.read(self.maskerpath + 'water_prior.wav')
+        gain = 0.036370
+
+        location = f'{LOCATION_ID}'
+        sendmasker = 'water_prior'
+        predictionsdict = {"Prediction": sendmasker, "basescore": 0, "doa": 0, "basespl": gain, "from": location}
+        print(predictionsdict)
+        predictionsdict = str(predictionsdict).replace("'", '"')
+        try:
+            amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_LEAST_ONCE)
+        except:
+            #compensated gain for distance and num of speakers
+            compGain = math.pow(10,self.insitucompensate(numofspeakers,optimaldistance)/20)
+            print('Compensated gain: {} dB'.format(20*math.log10(compGain)))
+            print(self.maskerpath + name)
+            print('now playing fixed masker {} with gain: {} as DOA {}'.format(name, realgain*compGain, self.currentdoa))
+
+            sd.play(water_prior*realgain*compGain, fs, device=1)
+            sd.wait()
+        
     def playfixedmasker(self, name, gain):
         fixedmaskers, fs = sf.read(self.maskerpath + name + '.wav')
         f = open(calibjsonpath, "r")
@@ -445,7 +488,7 @@ class soundplayer:
                         if globalswitch == 7:
                             self.playrandommasker()
                         if globalswitch == 8:
-                            self.playfixedmasker('bird_prior', gain) # check name of bird prior masker and gain
+                            self.playbirdprior()
                         if globalswitch == 9:
                             if masker == 'amss':
                                 self.playmasker()
