@@ -88,7 +88,7 @@ def readcsv(csvfile):
 calibgains = readcsv('/mqttpunggol/Calibrations_final_speaker_moukey.csv')
 
 LOCATION_ID = 'PCP_820222'
-optimaldistance = 2.4
+optimaldistance = 1.8
 numofspeakers = 4
 class soundplayer:
     def __init__(self):
