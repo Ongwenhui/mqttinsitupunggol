@@ -85,9 +85,9 @@ def readcsv(csvfile):
                 entrycount += 1
     return calibgains
 
-calibgains = readcsv('/mqttpunggol/Calibrations_final_speaker.csv')
+calibgains = readcsv('/mqttpunggol/Calibrations_final_speaker_moukey.csv')
 
-LOCATION_ID = 'NTU_YNG_639798'
+LOCATION_ID = 'PCP_820222'
 optimaldistance = 2.4
 numofspeakers = 4
 class soundplayer:
@@ -494,7 +494,7 @@ dummycsv = pd.read_csv("/mqttpunggol/dummy.csv")
 print(dummycsv)
 datelist = list(dummycsv['date'])
 print(datelist)
-globalswitch = 0
+globalswitch = 9
 
 # Configuration for connection to IoT Core to log predictions from AMSS mode
 CLIENT_IDlogging = 'AMSSlogging'
