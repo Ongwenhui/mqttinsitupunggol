@@ -213,11 +213,11 @@ class soundplayer:
     def playsilence(self):
         print('playing silence')
         silence, silencefs = sf.read(self.maskerpath + "silence3s.wav", dtype='float32')
-        sd.play(silence, silencefs, device=1)
+        sd.play(silence, silencefs, device=7)
         sd.wait()
     def playtesttone(self):
         testtone, testtonefs = sf.read('/mqttpunggol/4channel.wav')
-        sd.play(testtone, testtonefs, device=1)
+        sd.play(testtone, testtonefs, device=7)
         sd.wait()
     def playfixedmasker(self, name, gain):
         fixedmaskers, fs = sf.read(self.maskerpath + name + '.wav')
@@ -243,7 +243,7 @@ class soundplayer:
             print(self.maskerpath + name)
             print('now playing fixed masker {} with gain: {} as DOA {}'.format(name, realgain*compGain, self.currentdoa))
 
-            sd.play(fixedmaskers*realgain*compGain, fs, device=1)
+            sd.play(fixedmaskers*realgain*compGain, fs, device=7)
             sd.wait()
         
     def playrandommasker(self):
@@ -285,7 +285,7 @@ class soundplayer:
         print(self.maskerpath + randommasker)
         print('now playing random masker {} with gain: {} as DOA {}'.format(randommasker, realgain*compGain, self.currentdoa))
 
-        sd.play(fixedmaskers*realgain*compGain, fs, device=1)
+        sd.play(fixedmaskers*realgain*compGain, fs, device=7)
         sd.wait()
     def playmasker(self):
         self.q = queue.Queue()
@@ -357,7 +357,7 @@ class soundplayer:
                 amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_LEAST_ONCE)
             except:
                 pass
-            sd.play(data1*compGain, fs1, device=1)
+            sd.play(data1*compGain, fs1, device=7)
             sd.wait()
         except KeyboardInterrupt:
             pass
