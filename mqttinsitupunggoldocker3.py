@@ -169,7 +169,7 @@ class soundplayer:
         return compensated
     def iotsend(inputdict):
         mqtt_connection.connect()
-        mqtt_connection.publish(topic="test/AIMEdebugging", payload=(inputdict), qos=mqtt.QoS.AT_LEAST_ONCE)
+        mqtt_connection.publish(topic="test/AIMEdebugging", payload=(inputdict), qos=mqtt.QoS.AT_MOST_ONCE)
     def spatialize(self, masker, angle, normalize=True, offset=-65, k=1.0):
         # masker.shape = (n_samples,)2
         # angle in degrees
@@ -236,11 +236,11 @@ class soundplayer:
     def playsilence(self):
         print('playing silence')
         silence, silencefs = sf.read(self.maskerpath + "silence3s.wav", dtype='float32')
-        sd.play(silence, silencefs, device=7)
+        sd.play(silence, silencefs, device=1)
         sd.wait()
     def playtesttone(self):
         testtone, testtonefs = sf.read(f"{cwd}/4channel.wav")
-        sd.play(testtone, testtonefs, device=7)
+        sd.play(testtone, testtonefs, device=1)
         sd.wait()
 
     def playbirdprior(self):
@@ -258,10 +258,10 @@ class soundplayer:
         print(self.maskerpath + 'bird_prior')
         print('now playing fixed masker {} with gain: {} as DOA {}'.format('bird_prior', bird_priorgain*compGain, self.currentdoa))
 
-        sd.play(bird_prior*bird_priorgain*compGain, fs, device=7)
+        sd.play(bird_prior*bird_priorgain*compGain, fs, device=1)
         sd.wait()
         try:
-            amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_LEAST_ONCE)
+            amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_MOST_ONCE)
         except:
             pass
 
@@ -280,10 +280,10 @@ class soundplayer:
         print(self.maskerpath + name)
         print('now playing fixed masker {} with gain: {} as DOA {}'.format('water_prior', water_priorgain*compGain, self.currentdoa))
 
-        sd.play(water_prior*water_priorgain*compGain, fs, device=7)
+        sd.play(water_prior*water_priorgain*compGain, fs, device=1)
         sd.wait()
         try:
-            amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_LEAST_ONCE)
+            amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_MOST_ONCE)
         except:
             pass
         
@@ -308,10 +308,10 @@ class soundplayer:
         print(self.maskerpath + name)
         print('now playing fixed masker {} with gain: {} as DOA {}'.format(name, realgain*compGain, self.currentdoa))
 
-        sd.play(fixedmaskers*realgain*compGain, fs, device=7)
+        sd.play(fixedmaskers*realgain*compGain, fs, device=1)
         sd.wait()
         try:
-            amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_LEAST_ONCE)
+            amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_MOST_ONCE)
         except:
             pass
         
@@ -347,7 +347,7 @@ class soundplayer:
         print(predictionsdict)
         predictionsdict = str(predictionsdict).replace("'", '"')
         try:
-            amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_LEAST_ONCE)
+            amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_MOST_ONCE)
         except:
             pass
         
@@ -355,7 +355,7 @@ class soundplayer:
         print(self.maskerpath + randommasker)
         print('now playing random masker {} with gain: {} as DOA {}'.format(randommasker, realgain*compGain, self.currentdoa))
 
-        sd.play(fixedmaskers*realgain*compGain, fs, device=7)
+        sd.play(fixedmaskers*realgain*compGain, fs, device=1)
         sd.wait()
     def playmasker(self):
         self.q = queue.Queue()
@@ -424,10 +424,10 @@ class soundplayer:
             compGain = math.pow(10,self.insitucompensate(numofspeakers,optimaldistance)/20)
             print('Compensated gain: {} dB'.format(20*math.log10(compGain)))
             try:
-                amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_LEAST_ONCE)
+                amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_MOST_ONCE)
             except:
                 pass
-            sd.play(data1*compGain, fs1, device=7)
+            sd.play(data1*compGain, fs1, device=1)
             sd.wait()
         except KeyboardInterrupt:
             pass
@@ -524,7 +524,7 @@ class soundplayer:
                 shadow_name = self.shadow_name,
                 thing_name = self.thing_name
             ),
-            qos=mqtt.QoS.AT_LEAST_ONCE
+            qos=mqtt.QoS.AT_MOST_ONCE
         )
         self.open_get_request_future.result()
 
@@ -533,7 +533,7 @@ class soundplayer:
         print("Subscribing to Get responses...")
         self.get_accepted_subscribed_future, self.get_shadow_accepted_topic = self.shadow_client.subscribe_to_get_named_shadow_accepted(
             request=iotshadow.GetNamedShadowSubscriptionRequest(shadow_name = self.shadow_name, thing_name = self.thing_name),
-            qos=mqtt.QoS.AT_LEAST_ONCE,
+            qos=mqtt.QoS.AT_MOST_ONCE,
             callback=self.on_get_shadow_accepted)
         self.get_accepted_subscribed_future.result()
 
@@ -561,7 +561,7 @@ class soundplayer:
         self.mqtt_connection.publish(
             topic=self.statereturntopic,
             payload=json.dumps(self.returnmessagedict),
-            qos=mqtt.QoS.AT_LEAST_ONCE,
+            qos=mqtt.QoS.AT_MOST_ONCE,
             retain=True)
         
         
