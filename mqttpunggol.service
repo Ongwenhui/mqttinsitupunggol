@@ -3,7 +3,7 @@ Description=service for starting mqttpunggol container
 
 [Service]
 ExecStartPre=/home/pi/mqtt_client/trycatchrmplayback.sh
-ExecStart=/usr/bin/docker run -dt --privileged --name mqttpunggol -v /home/pi/mqtt_client:/mqttpunggol -w /mqttpunggol --device /dev/snd mqttpunggol
+ExecStart=/usr/bin/docker run -dt --privileged --name mqttpunggol -v /home/pi/mqtt_client:/mqttpunggol -w /mqttpunggol --device /dev/snd:/dev/snd mqttpunggol
 
 [Install]
 WantedBy=multi-user.target
