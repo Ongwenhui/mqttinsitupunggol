@@ -245,7 +245,7 @@ class soundplayer:
 
     def playbirdprior(self):
         bird_prior, fs = sf.read(self.maskerpath + 'bird_prior.wav')
-        bird_priorgain = 0.056027
+        bird_priorgain = 0.015402
 
         location = f'{LOCATION_ID}'
         sendmasker = 'bird_prior'
@@ -267,7 +267,7 @@ class soundplayer:
 
     def playwaterprior(self):
         water_prior, fs = sf.read(self.maskerpath + 'water_prior.wav')
-        water_priorgain = 0.036370
+        water_priorgain = 0.008889
 
         location = f'{LOCATION_ID}'
         sendmasker = 'water_prior'
