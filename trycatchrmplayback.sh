@@ -1,3 +1,4 @@
+#!/bin/bash
 function try()
 {
     [[ $- = *e* ]]; SAVED_OPT_E=$?
