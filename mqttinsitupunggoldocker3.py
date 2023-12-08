@@ -527,6 +527,8 @@ class soundplayer:
             time.sleep(0.5)
 
     # Publish blank payload to mqttnbs shadow to request for the current state of the shadow
+    # don't seem to be working? Not sure what's wrong
+    # usual exception: 0: 5131 (AWS_ERROR_MQTT_NOT_CONNECTED): The requested operation is invalid as the connection is not open
     def open_get_request(self):
         print("-------------------open_get_request starts here-----------------------")
         self.open_get_request_future = self.shadow_client.publish_get_named_shadow(
