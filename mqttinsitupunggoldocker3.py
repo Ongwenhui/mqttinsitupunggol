@@ -245,7 +245,7 @@ class soundplayer:
 
     def playbirdprior(self):
         bird_prior, fs = sf.read(self.maskerpath + 'bird_prior.wav')
-        bird_priorgain = 0.015402
+        bird_priorgain = 0.056027
 
         location = f'{LOCATION_ID}'
         sendmasker = 'bird_prior'
@@ -267,7 +267,7 @@ class soundplayer:
 
     def playwaterprior(self):
         water_prior, fs = sf.read(self.maskerpath + 'water_prior.wav')
-        water_priorgain = 0.008889
+        water_priorgain = 0.036370
 
         location = f'{LOCATION_ID}'
         sendmasker = 'water_prior'
@@ -506,19 +506,29 @@ class soundplayer:
                 self.MQTTClient.subscribeAsync(self.mqttTOPIC, 0,messageCallback = self.msgcallback)
             except:
                 pass
-            time.sleep(1)
+            time.sleep(0.5)
             try:
                 self.open_get_request()
-                self.get_accepted_responses()
-                self.send_back_to_iot(globalswitch, LOCATION_ID)
-            except:
-                print("except")
+            except Exception as e:
+                print(f'open_get_request exception: {e.message}')
                 pass
-            time.sleep(1)
+            time.sleep(0.5)
+            try:
+                self.get_accepted_responses()
+            except Exception as e:
+                print(f'get_accepted_responses exception: {e.message}')
+                pass
+            time.sleep(0.5)
+            try:
+                self.send_back_to_iot(globalswitch, LOCATION_ID)
+            except Exception as e:
+                print(f'send_back_to_iot exception: {e.message}')
+                pass
+            time.sleep(0.5)
 
     # Publish blank payload to mqttnbs shadow to request for the current state of the shadow
     def open_get_request(self):
-        print("Opening Get request...")
+        print("-------------------open_get_request starts here-----------------------")
         self.open_get_request_future = self.shadow_client.publish_get_named_shadow(
             request=iotshadow.GetNamedShadowRequest(
                 shadow_name = self.shadow_name,
@@ -526,16 +536,46 @@ class soundplayer:
             ),
             qos=mqtt.QoS.AT_MOST_ONCE
         )
-        self.open_get_request_future.result()
+        
+        # Implement backoff in the case of closed connection
+        sleep_time = 2
+        num_retries = 4
+        for x in range(0, num_retries):
+            try:
+                self.open_get_request_future.result()
+                str_error = None
+            except Exception as e:
+                str_error = str(f'{x}: {e}')
+                print(str_error)
+            if str_error:
+                time.sleep(sleep_time)
+                sleep_time += 1
+            else:
+                break
 
     # Subscribes to the /get/accepted topic after the get request is opened in open_get_request. Callback = on_get_shadow_accepted
     def get_accepted_responses(self):
-        print("Subscribing to Get responses...")
+        print("-------------------get_accept_responses starts here-----------------------")
         self.get_accepted_subscribed_future, self.get_shadow_accepted_topic = self.shadow_client.subscribe_to_get_named_shadow_accepted(
             request=iotshadow.GetNamedShadowSubscriptionRequest(shadow_name = self.shadow_name, thing_name = self.thing_name),
             qos=mqtt.QoS.AT_MOST_ONCE,
             callback=self.on_get_shadow_accepted)
-        self.get_accepted_subscribed_future.result()
+ 
+        sleep_time = 2
+        num_retries = 4
+        for x in range(0, num_retries):
+            try:
+                self.get_accepted_subscribed_future.result()
+                str_error = None
+            except Exception as e:
+                str_error = str(f'{x}: {e}')
+                print(str_error)
+            if str_error:
+                time.sleep(sleep_time)
+                sleep_time += 1
+            else:
+                print("-------------------get_accept_responses ends here-----------------------")
+                break
 
     # Callback retrieves the new state from the response and assigns that value to globalswitch
     def on_get_shadow_accepted(self, response):
@@ -563,6 +603,7 @@ class soundplayer:
             payload=json.dumps(self.returnmessagedict),
             qos=mqtt.QoS.AT_MOST_ONCE,
             retain=True)
+        print('-------------------send_back_to_iot ends here-----------------------')
         
         
         
