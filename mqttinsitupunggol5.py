@@ -82,8 +82,8 @@ def readcsv(csvfile):
 
 calibgains = readcsv(f"{cwd}/Calibrations_final_speaker_moukey.csv")
 
-LOCATION_ID = 'demo'
-optimaldistance = 1
+LOCATION_ID = 'NTU_YNG_639798'
+optimaldistance = 2.4
 numofspeakers = 4
 class soundplayer:
     def __init__(self,
@@ -146,7 +146,7 @@ class soundplayer:
         self.shadow_client = shadow_client
         self.playbackmasker = 'playthismasker.wav'
         self.playbacksr = 44100
-        self.defaultaplaydevice = 'default:CARD=AllRate'
+        self.defaultaplaydevice = 'default:CARD=TosLink'
         self.playbackcommand = f'aplay -D {self.defaultaplaydevice} {self.playbackmasker}'
 
     def insitucompensate(self, numofspeakers,distance):
@@ -268,9 +268,10 @@ class soundplayer:
         print('Compensated gain: {} dB'.format(20*math.log10(compGain)))
         print(self.maskerpath + name)
         print('now playing fixed masker {} with gain: {} as DOA {}'.format('water_prior', water_priorgain*compGain, self.currentdoa))
-
-        sd.play(water_prior*water_priorgain*compGain, fs, device=1)
-        sd.wait()
+        print(f'\t\t{self.maskerpath} || {self.playbackmasker} || water_prior.shape = {water_prior.shape} || fs = {fs} || bird_priorgain = {bird_watergain} || compGain = {compGain} || self.playbacksr = {self.playbacksr}')
+        sf.write(self.playbackmasker, water_prior*water_priorgain*compGain, self.playbacksr)
+        print(f'now executing {self.playbackcommand}')
+        os.system(self.playbackcommand)
         try:
             amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_MOST_ONCE)
         except:
@@ -296,9 +297,10 @@ class soundplayer:
         print('Compensated gain: {} dB'.format(20*math.log10(compGain)))
         print(self.maskerpath + name)
         print('now playing fixed masker {} with gain: {} as DOA {}'.format(name, realgain*compGain, self.currentdoa))
-
-        sd.play(fixedmaskers*realgain*compGain, fs, device=1)
-        sd.wait()
+        print(f'\t\t{self.maskerpath} || {self.playbackmasker} || fixedmaskers.shape = {fixedmaskers.shape} || fs = {fs} || fixed_masker_gain = {realgain} || compGain = {compGain} || self.playbacksr = {self.playbacksr}')
+        sf.write(self.playbackmasker, fixedmaskers*realgain*compGain, self.playbacksr)
+        print(f'now executing {self.playbackcommand}')
+        os.system(self.playbackcommand)
         try:
             amssClient.publish(topic=amssTOPIC, payload = (str(predictionsdict)), QoS=mqtt.QoS.AT_MOST_ONCE)
         except:
@@ -343,7 +345,10 @@ class soundplayer:
         print('Compensated gain: {} dB'.format(20*math.log10(compGain)))
         print(self.maskerpath + randommasker)
         print('now playing random masker {} with gain: {} as DOA {}'.format(randommasker, realgain*compGain, self.currentdoa))
-
+        print(f'\t\t{self.maskerpath} || {self.playbackmasker} || randommasker.shape = {randommasker.shape} || fs = {fs} || randommasker_gain = {realgain} || compGain = {compGain} || self.playbacksr = {self.playbacksr}')
+        sf.write(self.playbackmasker, randommasker*realgain*compGain, self.playbacksr)
+        print(f'now executing {self.playbackcommand}')
+        os.system(self.playbackcommand)
         sd.play(fixedmaskers*realgain*compGain, fs, device=1)
         sd.wait()
     def playmasker(self):
