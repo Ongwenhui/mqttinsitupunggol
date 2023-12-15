@@ -9,4 +9,8 @@ Version 5 changelog:<br>
 ## Interpolate(masker,gain)
 Obsolete function that reads the old calibration values from an old json file. Will remove in the future, but won't touch for now in case removing it causes issues in the rest of the code.
 
-## 
+## readcsv(csvfile)
+Reads a csvfile and returns a dictionary with all the file names and calibrated gain values.
+
+## calibgains
+Filepath of the csv file containing 
