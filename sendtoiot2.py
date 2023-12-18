@@ -81,7 +81,11 @@ connected_future.result()
 # Make the connect() call
 print("Connected!")
 change_shadow_value(shadow_value)
+backoff_time = int(time.time())
+num_retries = 5
+print(f'current time is {backoff_time}, will send a request every 5 seconds and timeout after {num_retries} retries.')
 while True:
+    
     mqtt_connection.subscribe(
         topic=statereturn_topic,
         qos=mqtt.QoS.AT_LEAST_ONCE,
