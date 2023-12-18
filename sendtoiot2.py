@@ -87,15 +87,16 @@ num_retries = 5
 retry_counter = 0
 print(f'current time is {backoff_time}, will send a request every {backoff_duration} seconds and timeout after {num_retries} retries.')
 while True:
-    if (int(time.time()) - backoff_time) >= backoff_duration):
+    if (int(time.time()) - backoff_timer) >= backoff_duration):
         mqtt_connection.subscribe(
             topic=statereturn_topic,
             qos=mqtt.QoS.AT_LEAST_ONCE,
             callback=statereturncheckcallback
         )
-        
+        retry_counter += 1
+        backoff_timer = int(time.time())
     time.sleep(0.5)
-    if state == onoff:
+    if (state == onoff) || (retry_counter >= num_retries):
         break
 # Publish message to server desired number of times.
 #iotClient.publishAsync(TOPIC, json.dumps(dict), 1)
