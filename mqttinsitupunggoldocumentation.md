@@ -18,8 +18,8 @@ Version 5 changelog:<br>
 Class containing all variables and functions related to the playback of the maskers.<br>
 
 ## Arguments
-- shadow_name: Name of the device shadow in AWS IoT Core.<br>
-- thing_name: Name of the IoT Core thing that the device shadow belongs to.<br>
+- shadow_name: name of the device shadow in AWS IoT Core.<br>
+- thing_name: name of the IoT Core thing that the device shadow belongs to.<br>
 - event_loop_group: assigned the value <code>io.EventLoopGroup(1)</code>. Starts a thread for I/O operations.<br>
 - host_resolver: assigned the value <code>io.DefaultHostResolver(event_loop_group)</code>. Default DNS host resolver.<br>
 - client_bootstrap:  assigned the value <code>io.ClientBootStrap(event_loop_group, host_resolver)</code>. Handles creation and setup of client socket connections.<br>
@@ -27,4 +27,8 @@ Class containing all variables and functions related to the playback of the mask
 - connected_future: returns <code>None</code> if connection is successful, returns an exception if an error is encountered.<br>
 - shadow_client: connection to the device shadow in AWS IoT Core.<br>
 
+## Init variables
+- self.mqttENDPOINT: endpoint that contains the topic with AMSS predictions.<br>
+- self.mqttCLIENT_ID: client id used when subscribing to the AMSS predictions topic.<br>
+- self.mqttcertfolder: directory containing the certificates required to connect to IoT Core. Currently set to be relative to the cwd.<br>
 
