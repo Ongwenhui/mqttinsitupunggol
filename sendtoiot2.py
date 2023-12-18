@@ -47,57 +47,60 @@ def statereturncheckcallback(topic, payload, retain=True):
         print(state)
     
 
-
-ENDPOINT = "a5i03kombapo4-ats.iot.ap-southeast-1.amazonaws.com"
-CLIENT_ID = "enviropluspi"
-PATH_TO_CERTIFICATE = "/Users/ongwenhui/Desktop/certs/testcode/nbsiot/9972587da4767d10db7001fc18bab5b9124945c4762ebf246b6266e08352970b-certificate.pem.crt"
-PATH_TO_PRIVATE_KEY = "/Users/ongwenhui/Desktop/certs/testcode/nbsiot/9972587da4767d10db7001fc18bab5b9124945c4762ebf246b6266e08352970b-private.pem.key"
-PATH_TO_AMAZON_ROOT_CA_1 = "/Users/ongwenhui/Desktop/certs/testcode/nbsiot/root.pem"
-TOPIC = "test/nbs"
-
-state = None
-thing_name = "WenhuiAWSthing"
-shadow_name = "mqttnbs"
-statereturn_topic = "mqtt/statereturn"
-
-event_loop_group = io.EventLoopGroup(1)
-host_resolver = io.DefaultHostResolver(event_loop_group)
-client_bootstrap = io.ClientBootstrap(event_loop_group, host_resolver)
-mqtt_connection = mqtt_connection_builder.mtls_from_path(
-            endpoint=ENDPOINT,
-            cert_filepath=PATH_TO_CERTIFICATE,
-            pri_key_filepath=PATH_TO_PRIVATE_KEY,
-            client_bootstrap=client_bootstrap,
-            ca_filepath=PATH_TO_AMAZON_ROOT_CA_1,
-            client_id=CLIENT_ID,
-            clean_session=False,
-            keep_alive_secs=6
+def main():
+    ENDPOINT = "a5i03kombapo4-ats.iot.ap-southeast-1.amazonaws.com"
+    CLIENT_ID = "enviropluspi"
+    PATH_TO_CERTIFICATE = "/Users/ongwenhui/Desktop/certs/testcode/nbsiot/9972587da4767d10db7001fc18bab5b9124945c4762ebf246b6266e08352970b-certificate.pem.crt"
+    PATH_TO_PRIVATE_KEY = "/Users/ongwenhui/Desktop/certs/testcode/nbsiot/9972587da4767d10db7001fc18bab5b9124945c4762ebf246b6266e08352970b-private.pem.key"
+    PATH_TO_AMAZON_ROOT_CA_1 = "/Users/ongwenhui/Desktop/certs/testcode/nbsiot/root.pem"
+    TOPIC = "test/nbs"
+    
+    state = None
+    thing_name = "WenhuiAWSthing"
+    shadow_name = "mqttnbs"
+    statereturn_topic = "mqtt/statereturn"
+    
+    event_loop_group = io.EventLoopGroup(1)
+    host_resolver = io.DefaultHostResolver(event_loop_group)
+    client_bootstrap = io.ClientBootstrap(event_loop_group, host_resolver)
+    mqtt_connection = mqtt_connection_builder.mtls_from_path(
+                endpoint=ENDPOINT,
+                cert_filepath=PATH_TO_CERTIFICATE,
+                pri_key_filepath=PATH_TO_PRIVATE_KEY,
+                client_bootstrap=client_bootstrap,
+                ca_filepath=PATH_TO_AMAZON_ROOT_CA_1,
+                client_id=CLIENT_ID,
+                clean_session=False,
+                keep_alive_secs=6
+                )
+    connected_future = mqtt_connection.connect()
+    shadow_client = iotshadow.IotShadowClient(mqtt_connection)
+    print("Connecting to {} with client ID '{}'...".format(
+            ENDPOINT, CLIENT_ID))
+    connected_future.result()
+    # Make the connect() call
+    print("Connected!")
+    change_shadow_value(shadow_value)
+    backoff_timer = int(time.time())
+    backoff_duration = 5
+    num_retries = 5
+    retry_counter = 0
+    print(f'current time is {backoff_time}, will send a request every {backoff_duration} seconds and timeout after {num_retries} retries.')
+    while True:
+        if (int(time.time()) - backoff_timer) >= backoff_duration):
+            mqtt_connection.subscribe(
+                topic=statereturn_topic,
+                qos=mqtt.QoS.AT_LEAST_ONCE,
+                callback=statereturncheckcallback
             )
-connected_future = mqtt_connection.connect()
-shadow_client = iotshadow.IotShadowClient(mqtt_connection)
-print("Connecting to {} with client ID '{}'...".format(
-        ENDPOINT, CLIENT_ID))
-connected_future.result()
-# Make the connect() call
-print("Connected!")
-change_shadow_value(shadow_value)
-backoff_timer = int(time.time())
-backoff_duration = 5
-num_retries = 5
-retry_counter = 0
-print(f'current time is {backoff_time}, will send a request every {backoff_duration} seconds and timeout after {num_retries} retries.')
-while True:
-    if (int(time.time()) - backoff_timer) >= backoff_duration):
-        mqtt_connection.subscribe(
-            topic=statereturn_topic,
-            qos=mqtt.QoS.AT_LEAST_ONCE,
-            callback=statereturncheckcallback
-        )
-        retry_counter += 1
-        backoff_timer = int(time.time())
-    time.sleep(0.5)
-    if (state == onoff) || (retry_counter >= num_retries):
-        break
-# Publish message to server desired number of times.
-#iotClient.publishAsync(TOPIC, json.dumps(dict), 1)
-print('done')
+            retry_counter += 1
+            backoff_timer = int(time.time())
+        time.sleep(0.5)
+        if (state == onoff) || (retry_counter >= num_retries):
+            break
+    # Publish message to server desired number of times.
+    #iotClient.publishAsync(TOPIC, json.dumps(dict), 1)
+    print('done')
+
+if __name__ == '__main__':
+    main()
