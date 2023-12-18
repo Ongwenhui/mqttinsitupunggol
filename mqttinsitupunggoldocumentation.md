@@ -14,8 +14,18 @@ Version 5 changelog:<br>
 - optimaldistance: Distance from the speakers to the target area in meters.<br>
 - numofspeakers: Number of speakers at the location.
 
- ## class soundplayer(self, shadow_name, thing_name, event_loop_group, host_resolver, client_bootstrap, mqtt_connection, connected_future, shadow_client)
- Class containing all variables and functions related to the playback of the maskers.<br>
- arguments:<br>
+## class soundplayer(self, shadow_name, thing_name, event_loop_group, host_resolver, client_bootstrap, mqtt_connection, connected_future, shadow_client)
+Class containing all variables and functions related to the playback of the maskers.<br>
 
- - shadow_name
+## Arguments
+
+- shadow_name: Name of the device shadow in AWS IoT Core.<br>
+- thing_name: Name of the IoT Core thing that the device shadow belongs to.<br>
+- event_loop_group: assigned the value <code>io.EventLoopGroup(1)</code>. Starts a thread for I/O operations.<br>
+- host_resolver: assigned the value <code>io.DefaultHostResolver(event_loop_group)</code>. Default DNS host resolver.<br>
+- client_bootstrap:  assigned the value <code>io.ClientBootStrap(event_loop_group, host_resolver)</code>. Handles creation and setup of client socket connections.<br>
+- mqtt_connection: establishes a connection to the endpoint.<br>
+- connected_future: returns <code>None</code> if connection is successful, returns an exception if an error is encountered.<br>
+- shadow_client: connection to the device shadow in AWS IoT Core.<br>
+
+
