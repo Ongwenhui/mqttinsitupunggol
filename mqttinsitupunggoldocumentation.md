@@ -18,7 +18,6 @@ Version 5 changelog:<br>
 Class containing all variables and functions related to the playback of the maskers.<br>
 
 ## Arguments
-
 - shadow_name: Name of the device shadow in AWS IoT Core.<br>
 - thing_name: Name of the IoT Core thing that the device shadow belongs to.<br>
 - event_loop_group: assigned the value <code>io.EventLoopGroup(1)</code>. Starts a thread for I/O operations.<br>
