@@ -134,7 +134,7 @@ class soundplayer:
         self.doadiff = 20
         self.ambientspl = 68.1
         
-        self.statereturntopic = 'mqtt/statereturn'
+        self.statereturntopic = f'mqtt/statereturn/{LOCATION_ID}'
         self.shadow_name = shadow_name
         self.thing_name = thing_name
         
