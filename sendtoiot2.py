@@ -20,7 +20,7 @@ unixtime = str(dt.now())
 # location_id = 'NTU_YNG_639798'
 # # location_id = 'PWP'
 location_id= 'demo'
-onoff = 1.0
+onoff = 0.0
 shadow_value = {"ID": id, "onoff" : onoff, "unixtime": unixtime, "location_id": location_id}
 #shadow_value = {"ID": 9999, "onoff" : onoff, "unixtime": str(dt.now()), "location_id": "demo"}
 # print(dict)
@@ -35,7 +35,7 @@ TOPIC = "test/nbs"
 state = None
 thing_name = "WenhuiAWSthing"
 shadow_name = "mqttnbs"
-statereturn_topic = "mqtt/statereturn"
+statereturn_topic = f"mqtt/statereturn/{location_id}"
 
 event_loop_group = io.EventLoopGroup(1)
 host_resolver = io.DefaultHostResolver(event_loop_group)
@@ -86,7 +86,7 @@ print("Connected!")
 change_shadow_value(shadow_value)
 backoff_timer = int(time.time())
 backoff_duration = 5
-num_retries = 5
+num_retries = 10
 retry_counter = 0
 print(f'current time is {backoff_timer}, will send a request every {backoff_duration} seconds and timeout after {num_retries} retries.')
 while True:
