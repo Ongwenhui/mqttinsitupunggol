@@ -31,4 +31,16 @@ Class containing all variables and functions related to the playback of the mask
 - self.mqttENDPOINT: endpoint that contains the topic with AMSS predictions.<br>
 - self.mqttCLIENT_ID: client id used when subscribing to the AMSS predictions topic.<br>
 - self.mqttcertfolder: directory containing the certificates required to connect to IoT Core. Currently set to be relative to the cwd.<br>
+- self.mqttPATH_TO_CERTIFICATE: filepath to certificate required to connect to IoT Core.<br>
+- self.mqttPATH_TO_AMAZON_ROOT_CA_1: filepath to the AmazonRootCA1.pem file required to connect to IoT Core.<br>
+- self.mqttPATH_TO_PRIVATE_KEY: filepath to the private key required to connect to IoT Core.<br>
+- self.mqttTOPIC: topic to subscribe to that contains the AMSS predictions. Varies with location (check LOCATION_ID).<br>
+- self.MQTTclient: establishes a connection to the AMSS prediction topic.<br>
+- self.maskerpath: directory containing the maskers.<br>
+- self.statereturntopic: topic to publish the current state of the playback to. Varies with location.<br>
+- self.playbackmasker: name of the masker to be played. Data in this wav file is overwritten whenever a new masker is to be played.<br>
+- self.playbacksr: sample rate the masker is to be played back at. Optional.<br>
+- self.defauitplaybackdevice: default device to use for playback with <code>aplay</code>.<br>
+- self.playbackcommand: command to run using <code>os.system</code> whenever a masker is to be played.<br>
+
 
