@@ -153,14 +153,19 @@ class soundplayer:
         compensated = round(20*math.log10(distance) - 10*math.log10(numofspeakers))
         return compensated
 
+    # Function not in use, delete in the future
     def insituMultiMaskercompensate(self, numofspeakers,distance,noOfMaskers):
         compensated = round(20*math.log10(distance) - 
                             10*math.log10(numofspeakers) -
                             20*math.log10(noOfMaskers))
         return compensated
+
+    # Function not in use, delete in the future
     def iotsend(inputdict):
         mqtt_connection.connect()
         mqtt_connection.publish(topic="test/AIMEdebugging", payload=(inputdict), qos=mqtt.QoS.AT_MOST_ONCE)
+
+    # Function not in use, delete in the future
     def spatialize(self, masker, angle, normalize=True, offset=-65, k=1.0):
         # masker.shape = (n_samples,)2
         # angle in degrees
@@ -222,8 +227,6 @@ class soundplayer:
         print("BaseSPL is: {}".format(incomingmsg["base_spl"]))
         # data, fs = sf.read(msgdict['predictions'][0]["id"]+'.wav', dtype='float32')  
         # sd.play(data, fs, device=1)
-    def ambient(self):
-        time.sleep(30)
     def playsilence(self):
         print('playing silence')
         os.system(f'aplay -D {self.defaultaplaydevice} {self.maskerpath}silence3s.wav')
