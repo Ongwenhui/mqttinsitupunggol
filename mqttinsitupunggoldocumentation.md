@@ -54,4 +54,18 @@ Performs compensation of the gain based on the number of speakers, distance from
 Establishes a connection to IoT Core and pubilshes a dictionary to the topic <code>AIMEdebugging</code>. **Currently not in use, need to delete in the future**.
 
 ## spatialize(self, masker, angle, normalize, offset, k)
-Not sure what this does. **Currently no in use, might delete in the future**.
+Not sure what this does. **Currently not in use, might delete in the future**.
+
+## msgcallback(self, client, userdata, message)
+Callback function called when message containing is received. Assigns the dictionary containing the predictions to <code>incomingmsg</code>, then prints the top rated masker, the recommended gain for the top rated masker and the BaseSPL of the surroundings.
+
+## playsilence(self)
+Plays a 3 second long silence using <code>aplay</code>. Used when running the AUS system in ambient mode.
+
+## playtesttone(self)
+Plays a 4 channel wav file with different tones using <code>aplay</code>. Used to ensure that all 4 channels are working.
+
+## playbirdprior(self)
+Plays <code>bird_prior.wav</code> using <code>aplay</code>, and publishes information about the masker being played to <code>amssTOPIC</code> in IoT Core. The value of the gain the masker is played at is assigned to <code>bird_priorgain</code>.
+
+
