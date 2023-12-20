@@ -43,4 +43,15 @@ Class containing all variables and functions related to the playback of the mask
 - self.defauitplaybackdevice: default device to use for playback with <code>aplay</code>.<br>
 - self.playbackcommand: command to run using <code>os.system</code> whenever a masker is to be played.<br>
 
+# Functions
+## insitucompensate(self, numofspeakers, distance)
+Performs compensation of the gain based on the number of speakers and distance from the speakers to the target location. Takes in the <code>soundplayer</code> class, <code>numofspeakers</code> and <code>distance</code>, and returns the compensated gain.<br>
 
+## insituMultiMaskercompensate(self, numbofspeakers, distance, noOfMaskers)
+Performs compensation of the gain based on the number of speakers, distance from the speakers to the target location, and the number of maskers to be played at the same. **Currently not in use**. Takes in the <code>soundplayer</code> class, <code>numofspeakers</code>, <code>distance</code> and <code>noOfMaskers</code>, and retuns the compensated gain.<br>
+
+## iotsend(inputDict)
+Establishes a connection to IoT Core and pubilshes a dictionary to the topic <code>AIMEdebugging</code>. **Currently not in use, need to delete in the future**.
+
+## spatialize(self, masker, angle, normalize, offset, k)
+Not sure what this does. **Currently no in use, might delete in the future**.
