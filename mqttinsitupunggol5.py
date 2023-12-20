@@ -493,8 +493,6 @@ class soundplayer:
                                 self.playsilence()
                             else:
                                 self.playfixedmasker(masker, gain)
-                    elif switch == 0:
-                        self.ambient()
                 dateindex += 1
 
     def mqttlooper(self):               
