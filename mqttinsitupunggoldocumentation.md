@@ -6,7 +6,7 @@ Version 5 changelog:<br>
 - Added new flags during printing for easier debugging.<br>
 - Added backoff timer to <code>soundplayer.open_get_request()</code>.<br>
 
-# Initializatiom
+# Initialization
 - Interpolate(masker,gain): Obsolete function that reads the old calibration values from an old json file. Will remove in the future, but won't touch for now in case removing it causes issues in the rest of the code.<br>
 - readcsv(csvfile): Reads a csvfile and returns a dictionary with all the file names and calibrated gain values.<br>
 - calibgains: Filepath of the csv file containing gains of each masker calibrated to SPL levels ranging from 43dB to 87dB using the Moukey speaker recorded at a distance of 1m.<br>
@@ -96,4 +96,12 @@ This function runs in multithreading mode alongside <code>mqttlooper</code>. Thi
 - If <code>globalswitch == 8</code>, <code>soundplayer.playbirdprior()</code> is called.<br>
 - If <code>globalswitch == 9</code>, the function checks the dateframe obtained from <code>dummy.csv</code> for the specific mode to play (csv mode).<br>
 
+## mqttlooper(self)
+This function runs in multithreading mode alongside <code>soundlooper</code> THis function performs the following in a <code>while True</code> loop:<br>
+1. Attempt to subscribe to <code>mqttTOPIC</code> to retrieve the predictions from AMSS.<br>
+2. Attempt to run <code>soundplayer.open_get.request()</code> to send a request for the current state of the shadow device to be published to the device topic.<br>
+3. Attempt to run <code>soundplayer.get_accepted_responses()</code> to retrieve the current state of the shadow device from the device topic.<br>
+4. Attempt to run <code>soundplayer.send_back_to_iot()</code> to send the current state of the playback to <code>soundplayer.statereturntopic</code>.<br>
 
+## open_get_request(self)
+Attempts to publish a blank message to the shadow device topic to request for the current state of the shadow device to be published to the device topic. Includes a backoff timer. 
