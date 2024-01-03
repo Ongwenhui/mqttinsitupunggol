@@ -68,4 +68,32 @@ Plays a 4 channel wav file with different tones using <code>aplay</code>. Used t
 ## playbirdprior(self)
 Plays <code>bird_prior.wav</code> using <code>aplay</code>, and publishes information about the masker being played to <code>amssTOPIC</code> in IoT Core. The value of the gain the masker is played at is assigned to <code>bird_priorgain</code>.
 
+## playwaterprior(self)
+Plays <code>water_prior.wav</code> using <code>aplay</code>, and publishes information about the masker being played to <code>amssTOPIC</code> in IoT Core. The value of the gain the masker is played at is assigned to <code>water_priorgain</code>.
+
+## playfixedmasker(self, name, gain)
+Plays the masker specified in the row corresponding to the current date at the specified gain. This function takes in the name of the masker to be played and the SPL it should be played at as input arguments. After that, it plays the specified masker using <code>aplay</code>, and publishes information about the masker being played to <code>amssTOPIC</code> in IoT Core.
+
+## playrandommasker(self)
+Plays a random masker (selected from **bird 1 to bird 80, water 1 to water 80, and wind 1 to wind 40**). The value of the gain the masker is played at is assigned to <code>randomgain</code>. This function plays a random masker at the specified gain using <code>aplay</code>, and publishes information about the masker being played to <code>amssTOPIC</code>.
+
+## playmasker(self)
+Plays the top rated masker predicted by the AMSS using <code>aplay</code>, and publishes information about the masker being played to <code>amssTOPIC</code>.
+
+## streamcallback(self, outdata, frames, time, status)
+**OLD VERSION OF PLAYBACK USING STREAM. WILL DELETE IN THE FUTURE.**
+
+## soundlooper(self)
+This function runs in multithreading mode alongside <code>mqttlooper</code>. This function performas the following steps:<br>
+1. Checks if the predictions have been received from AMSS. If the predictions have been received, starts a <code>while True</code> comprising of the following steps.<br>
+2. Checks for the current date and time using the <code>dtchecker</code> script. Iterates through the list of dates, checking whether the current date exists in the list. Retrieves information about the masker to be played and the SPL to play it at from the dataframe obtained from <code>dummy.csv</code>.<br>
+3. If the current time is within silent hours (0070 - 2230), the playback mode defaults to playing silence.<br>
+4. Else, the functions checks for the current state of <code>globalswitch<code> (see <code>globalswitch</code> section below for more info on what it is).<br>
+- If <code>globalswitch == 0</code>, <code>soundplayer.playslience()</code> is called.<br>
+- If <code>globalswitch == 1</code>, <code>soundplayer.playmasker()</code> is called (AMSS mode).<br>
+- If <code>globalswitch == 2</code>, <code>soundplayer.playtesttone()</code> is called.<br>
+- If <code>globalswitch == 7</code>, <code>soundplayer.playrandommasker()</code> is called (random mode).<br>
+- If <code>globalswitch == 8</code>, <code>soundplayer.playbirdprior()</code> is called.<br>
+- If <code>globalswitch == 9</code>, the function checks the dateframe obtained from <code>dummy.csv</code> for the specific mode to play (csv mode).<br>
+
 
