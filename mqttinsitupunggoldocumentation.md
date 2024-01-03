@@ -88,7 +88,7 @@ This function runs in multithreading mode alongside <code>mqttlooper</code>. Thi
 1. Checks if the predictions have been received from AMSS. If the predictions have been received, starts a <code>while True</code> comprising of the following steps.<br>
 2. Checks for the current date and time using the <code>dtchecker</code> script. Iterates through the list of dates, checking whether the current date exists in the list. Retrieves information about the masker to be played and the SPL to play it at from the dataframe obtained from <code>dummy.csv</code>.<br>
 3. If the current time is within silent hours (0070 - 2230), the playback mode defaults to playing silence.<br>
-4. Else, the functions checks for the current state of <code>globalswitch<code> (see <code>globalswitch</code> section below for more info on what it is).<br>
+4. Else, the functions checks for the current state of <code>globalswitch</code> (see <code>globalswitch</code> section below for more info on what it is).<br>
 - If <code>globalswitch == 0</code>, <code>soundplayer.playslience()</code> is called.<br>
 - If <code>globalswitch == 1</code>, <code>soundplayer.playmasker()</code> is called (AMSS mode).<br>
 - If <code>globalswitch == 2</code>, <code>soundplayer.playtesttone()</code> is called.<br>
